@@ -1,0 +1,52 @@
+"use client";
+
+import { CalendarRange } from "lucide-react";
+
+import { DataTable } from "@/components/shared/data-table";
+import { ModuleCard } from "@/components/shared/module-card";
+import { PageShell } from "@/components/shared/page-shell";
+import { EmptyState } from "@/components/states/empty-state";
+import { ModuleLoader } from "@/components/states/module-loader";
+import { CreateAppointmentDialog } from "@/modules/appointments/components/create-appointment-dialog";
+import { useAppointments } from "@/modules/appointments/lib/use-appointments";
+
+export function AppointmentsModule() {
+  const { rows, options, loading, error, mode, addAppointment } = useAppointments();
+
+  if (loading) {
+    return <ModuleLoader />;
+  }
+
+  return (
+    <PageShell
+      title="Reservas y citas"
+      description="Agenda reusable para negocios con atencion por horario, recurso o empleado."
+      action={<CreateAppointmentDialog options={options} onCreate={addAppointment} />}
+    >
+      <ModuleCard
+        title="Agenda activa"
+        description={`Fuente activa: ${mode === "supabase" ? "Supabase" : "demo local"}. Estados, horarios y responsables en una estructura facil de escalar.`}
+      >
+        {rows.length > 0 ? (
+          <DataTable
+            rows={rows}
+            columns={[
+              { key: "time", label: "Hora" },
+              { key: "customer", label: "Cliente" },
+              { key: "service", label: "Servicio" },
+              { key: "employee", label: "Empleado" },
+              { key: "status", label: "Estado" },
+            ]}
+          />
+        ) : (
+          <EmptyState
+            icon={CalendarRange}
+            title="Aun no hay reservas"
+            description="Crea la primera reserva para activar la agenda operativa del negocio."
+          />
+        )}
+      </ModuleCard>
+      {error ? <EmptyState icon={CalendarRange} title="No se pudieron cargar las reservas" description={error} /> : null}
+    </PageShell>
+  );
+}
