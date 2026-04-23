@@ -654,6 +654,13 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_workspace_report_snapshot: {
+        Args: {
+          target_business_id: string;
+          range_days?: number | null;
+        };
+        Returns: Json;
+      };
       get_sale_form_options: {
         Args: {
           target_business_id: string;

@@ -143,6 +143,7 @@ Puntos fuertes ya cerrados:
 - servicios frontend de citas y ventas preparados para usar RPC con fallback temporal a consultas directas mientras la migracion no exista
 - dashboard y reportes ya pueden consumir un snapshot consolidado por RPC en vez de depender de lecturas operativas separadas
 - reportes ya pueden exportar el snapshot actual a CSV desde frontend
+- reportes ya soportan rangos de 7, 30 y 90 dias con servicio y hook propios, separados del dashboard diario
 
 ## Migraciones importantes
 
@@ -164,6 +165,7 @@ Orden actual de migraciones:
 - `014_operational_cross_module_rpcs.sql`
 - `015_dashboard_snapshot_rpc.sql`
 - `016_onboarding_presets_and_seed_data.sql`
+- `017_report_snapshot_rpc.sql`
 
 Resumen de las ultimas:
 
@@ -178,6 +180,7 @@ Resumen de las ultimas:
 - `014`: RPC seguras para opciones, listados y creacion de citas y ventas cuando la operacion depende de datos de otros modulos
 - `015`: snapshot consolidado para dashboard y reportes con permisos `dashboard.read` o `reports.read`
 - `016`: presets de onboarding con horarios y siembra inicial de servicios y productos
+- `017`: snapshot de reportes por rango con metricas, tendencia y listados recientes dentro del periodo
 
 ## Variables de entorno actuales
 
@@ -201,9 +204,11 @@ Variables:
 - `services/api/appointment-service.ts`
 - `services/api/sale-service.ts`
 - `services/api/dashboard-service.ts`
+- `services/api/report-service.ts`
 - `services/export/report-export.ts`
 - `modules/onboarding/components/onboarding-wizard.tsx`
 - `modules/reports/components/reports-module.tsx`
+- `modules/reports/lib/use-report-snapshot.ts`
 - `modules/auth/components/auth-guard.tsx`
 - `modules/auth/components/accept-invitation-card.tsx`
 - `lib/permissions/catalog.ts`
@@ -229,6 +234,7 @@ Variables:
 - `database/migrations/014_operational_cross_module_rpcs.sql`
 - `database/migrations/015_dashboard_snapshot_rpc.sql`
 - `database/migrations/016_onboarding_presets_and_seed_data.sql`
+- `database/migrations/017_report_snapshot_rpc.sql`
 - `lib/supabase/rpc.ts`
 - `lib/export/csv.ts`
 - `supabase/functions/send-business-invitation/index.ts`
@@ -267,6 +273,7 @@ Archivos nuevos de pruebas:
 - `tests/services/api/appointment-service.test.ts`
 - `tests/services/api/sale-service.test.ts`
 - `tests/services/api/dashboard-service.test.ts`
+- `tests/services/api/report-service.test.ts`
 - `tests/services/export/report-export.test.ts`
 
 ## Documento detallado de lo que falta
@@ -301,7 +308,7 @@ Prioridad sugerida para la proxima sesion:
    registrar estado de entrega, apertura o error si se necesita trazabilidad
 
 5. profundizar reportes
-   siguiente bloque sugerido: filtros por rango y exportaciones mas ricas aprovechando el snapshot consolidado
+   siguiente bloque sugerido: filtros personalizados por fechas y comparativas entre periodos aprovechando el snapshot consolidado
 
 ## Prompt sugerido para continuar manana
 

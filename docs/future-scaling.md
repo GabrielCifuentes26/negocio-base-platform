@@ -354,7 +354,7 @@ Falta:
 
 Falta:
 
-- filtros por rango de fechas
+- filtros personalizados por rango de fechas
 - comparativas
 - exportacion CSV enriquecida por rango y por seccion
 - eventualmente PDF
