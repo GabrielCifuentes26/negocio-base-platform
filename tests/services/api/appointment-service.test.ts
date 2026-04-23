@@ -50,7 +50,15 @@ describe("appointment service", () => {
     const rpcMock = vi.fn().mockResolvedValue({
       data: {
         customers: [{ value: "cust_1", label: "Ana", description: "+502 5555 1111" }],
-        services: [{ value: "srv_1", label: "Corte", description: "45 min" }],
+        services: [
+          {
+            value: "srv_1",
+            label: "Corte",
+            description: "45 min · Q 120.00",
+            durationMinutes: 45,
+            price: 120,
+          },
+        ],
         employees: [{ value: "mem_1", label: "Luis", description: "Staff" }],
       },
       error: null,
@@ -67,7 +75,15 @@ describe("appointment service", () => {
     });
     expect(result).toEqual({
       customers: [{ value: "cust_1", label: "Ana", description: "+502 5555 1111" }],
-      services: [{ value: "srv_1", label: "Corte", description: "45 min" }],
+      services: [
+        {
+          value: "srv_1",
+          label: "Corte",
+          description: "45 min · Q 120.00",
+          durationMinutes: 45,
+          price: 120,
+        },
+      ],
       employees: [{ value: "mem_1", label: "Luis", description: "Staff" }],
     });
   });
@@ -88,7 +104,7 @@ describe("appointment service", () => {
       rows: [{ id: "cust_1", name: "Ana", phone: "+502 5555 1111" }],
     });
     listServicesMock.mockResolvedValue({
-      rows: [{ id: "srv_1", name: "Corte", durationMinutes: 45 }],
+      rows: [{ id: "srv_1", name: "Corte", durationMinutes: 45, price: 120 }],
     });
     listTeamMembersMock.mockResolvedValue({
       rows: [{ value: "mem_1", label: "Luis", description: "Staff" }],
@@ -98,21 +114,31 @@ describe("appointment service", () => {
 
     expect(result).toEqual({
       customers: [{ value: "cust_1", label: "Ana", description: "+502 5555 1111" }],
-      services: [{ value: "srv_1", label: "Corte", description: "45 min" }],
+      services: [
+        {
+          value: "srv_1",
+          label: "Corte",
+          description: expect.stringContaining("45 min"),
+          durationMinutes: 45,
+          price: 120,
+        },
+      ],
       employees: [{ value: "mem_1", label: "Luis", description: "Staff" }],
     });
   });
 
-  it("lists appointments through the workspace RPC", async () => {
+  it("lists appointments through the workspace RPC with aggregated services", async () => {
     isSupabaseConfiguredMock.mockReturnValue(true);
     const rpcMock = vi.fn().mockResolvedValue({
       data: [
         {
           id: "appt_1",
           customer_name: "Ana",
-          service_name: "Corte",
+          service_name: "Corte + Barba",
+          service_count: 2,
           employee_name: "Luis",
           starts_at: "2026-04-23T14:30:00.000Z",
+          ends_at: "2026-04-23T15:30:00.000Z",
           status: "confirmed",
         },
       ],
@@ -133,7 +159,8 @@ describe("appointment service", () => {
       expect.objectContaining({
         id: "appt_1",
         customer: "Ana",
-        service: "Corte",
+        service: "Corte + Barba",
+        serviceCount: 2,
         employee: "Luis",
         status: "Confirmed",
         source: "supabase",
@@ -141,7 +168,7 @@ describe("appointment service", () => {
     );
   });
 
-  it("creates appointments through the workspace RPC", async () => {
+  it("creates multi-service appointments through the workspace RPC", async () => {
     isSupabaseConfiguredMock.mockReturnValue(true);
     const rpcMock = vi.fn().mockResolvedValue({
       data: [{ appointment_id: "appt_1" }],
@@ -154,7 +181,7 @@ describe("appointment service", () => {
 
     const result = await createAppointment("biz_1", {
       customerId: "cust_1",
-      serviceId: "srv_1",
+      serviceIds: ["srv_1", "srv_2"],
       assignedMembershipId: "mem_1",
       startsAt: "2026-04-23T14:30:00.000Z",
       notes: "Cliente frecuente",
@@ -164,7 +191,7 @@ describe("appointment service", () => {
     expect(rpcMock).toHaveBeenCalledWith("create_workspace_appointment", {
       target_business_id: "biz_1",
       target_customer_id: "cust_1",
-      target_service_id: "srv_1",
+      target_service_ids: ["srv_1", "srv_2"],
       starts_at_value: "2026-04-23T14:30:00.000Z",
       assigned_membership_id_value: "mem_1",
       notes_value: "Cliente frecuente",

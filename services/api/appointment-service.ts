@@ -1,6 +1,6 @@
 import { addMinutes, isSameDay } from "date-fns";
 
-import { formatTime, humanizeStatus } from "@/lib/format";
+import { formatCurrency, formatTime, humanizeStatus } from "@/lib/format";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isMissingRpcError } from "@/lib/supabase/rpc";
@@ -8,12 +8,17 @@ import { demoAppointments } from "@/services/api/demo-data";
 import { listCustomers } from "@/services/api/customer-service";
 import { listServices } from "@/services/api/service-service";
 import { listTeamMembers } from "@/services/api/team-service";
-import type { AppointmentFormOptions, AppointmentListItem, CreateAppointmentInput } from "@/types/appointment";
+import type {
+  AppointmentFormOptions,
+  AppointmentListItem,
+  AppointmentServiceOption,
+  CreateAppointmentInput,
+} from "@/types/appointment";
 import type { Database } from "@/types/database";
 
 type AppointmentRow = Pick<
   Database["public"]["Tables"]["appointments"]["Row"],
-  "id" | "customer_id" | "assigned_membership_id" | "starts_at" | "status"
+  "id" | "customer_id" | "assigned_membership_id" | "starts_at" | "ends_at" | "status"
 >;
 
 type AppointmentServiceRow = Pick<
@@ -23,49 +28,85 @@ type AppointmentServiceRow = Pick<
 
 type ServiceLookupRow = Pick<
   Database["public"]["Tables"]["services"]["Row"],
-  "id" | "duration_minutes" | "price"
+  "id" | "duration_minutes" | "price" | "name"
 >;
 
 type AppointmentRpcRow = {
   id: string;
   customer_name: string;
   service_name: string;
+  service_count: number;
   employee_name: string;
   starts_at: string;
+  ends_at: string;
   status: string;
 };
 
-type RpcSelectOption = {
+type RpcCustomerOption = {
   value: string;
   label: string;
   description?: string | null;
 };
 
+type RpcServiceOption = RpcCustomerOption & {
+  durationMinutes?: number | null;
+  price?: number | null;
+};
+
 type AppointmentOptionsPayload = {
-  customers?: RpcSelectOption[];
-  services?: RpcSelectOption[];
-  employees?: RpcSelectOption[];
+  customers?: RpcCustomerOption[];
+  services?: RpcServiceOption[];
+  employees?: RpcCustomerOption[];
 } | null;
 
 function toDemoRows(): AppointmentListItem[] {
-  return demoAppointments.map((appointment) => ({
-    id: appointment.id,
-    customer: appointment.customer,
-    service: appointment.service,
-    employee: appointment.employee,
-    time: appointment.time,
-    startsAt: new Date().toISOString(),
-    status: appointment.status,
-    source: "demo" as const,
+  return demoAppointments.map((appointment) => {
+    const startsAt = new Date();
+    const endsAt = addMinutes(new Date(startsAt), 45);
+
+    return {
+      id: appointment.id,
+      customer: appointment.customer,
+      service: appointment.service,
+      serviceCount: 1,
+      employee: appointment.employee,
+      time: `${formatTime(startsAt)} - ${formatTime(endsAt)}`,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      status: appointment.status,
+      source: "demo" as const,
+    };
+  });
+}
+
+function normalizeServiceOptions(items?: RpcServiceOption[] | null): AppointmentServiceOption[] {
+  return (items ?? []).map((item) => ({
+    value: item.value,
+    label: item.label,
+    description: item.description ?? undefined,
+    durationMinutes: Number(item.durationMinutes ?? 0),
+    price: Number(item.price ?? 0),
   }));
 }
 
-function normalizeOptions(items?: RpcSelectOption[] | null) {
+function normalizeOptions(items?: RpcCustomerOption[] | null) {
   return (items ?? []).map((item) => ({
     value: item.value,
     label: item.label,
     description: item.description ?? undefined,
   }));
+}
+
+function buildAppointmentServiceSummary(serviceNames: string[]) {
+  if (serviceNames.length === 0) {
+    return "Sin servicio";
+  }
+
+  return serviceNames.join(" + ");
+}
+
+function getUniqueServiceIds(serviceIds: string[]) {
+  return [...new Set(serviceIds.filter(Boolean))];
 }
 
 async function listAppointmentOptionsViaTables(businessId?: string | null): Promise<AppointmentFormOptions> {
@@ -84,7 +125,9 @@ async function listAppointmentOptionsViaTables(businessId?: string | null): Prom
     services: services.rows.map((service) => ({
       value: service.id,
       label: service.name,
-      description: `${service.durationMinutes} min`,
+      description: `${service.durationMinutes} min · ${formatCurrency(service.price)}`,
+      durationMinutes: service.durationMinutes,
+      price: service.price,
     })),
     employees: employees.rows,
   };
@@ -100,7 +143,7 @@ async function listAppointmentsViaTables(businessId: string) {
   const [{ data: appointments, error }, appointmentOptions] = await Promise.all([
     client
       .from("appointments")
-      .select("id, customer_id, assigned_membership_id, starts_at, status")
+      .select("id, customer_id, assigned_membership_id, starts_at, ends_at, status")
       .eq("business_id", businessId)
       .order("starts_at", { ascending: true }),
     listAppointmentOptionsViaTables(businessId),
@@ -123,22 +166,36 @@ async function listAppointmentsViaTables(businessId: string) {
   const customerMap = new Map(appointmentOptions.customers.map((item) => [item.value, item.label]));
   const serviceMap = new Map(appointmentOptions.services.map((item) => [item.value, item.label]));
   const employeeMap = new Map(appointmentOptions.employees.map((item) => [item.value, item.label]));
-  const serviceLinkMap = new Map(
-    ((appointmentServices ?? []) as AppointmentServiceRow[]).map((item) => [item.appointment_id, item.service_id]),
-  );
+  const servicesByAppointment = new Map<string, string[]>();
+
+  for (const item of (appointmentServices ?? []) as AppointmentServiceRow[]) {
+    const serviceNames = servicesByAppointment.get(item.appointment_id) ?? [];
+    const serviceName = serviceMap.get(item.service_id);
+
+    if (serviceName) {
+      serviceNames.push(serviceName);
+      servicesByAppointment.set(item.appointment_id, serviceNames);
+    }
+  }
 
   return {
     mode: "supabase" as const,
-    rows: appointmentRows.map((appointment) => ({
-      id: appointment.id,
-      customer: customerMap.get(appointment.customer_id) ?? "Cliente",
-      service: serviceMap.get(serviceLinkMap.get(appointment.id) ?? "") ?? "Sin servicio",
-      employee: employeeMap.get(appointment.assigned_membership_id ?? "") ?? "Sin asignar",
-      time: formatTime(appointment.starts_at),
-      startsAt: appointment.starts_at,
-      status: humanizeStatus(appointment.status),
-      source: "supabase" as const,
-    })),
+    rows: appointmentRows.map((appointment) => {
+      const serviceNames = servicesByAppointment.get(appointment.id) ?? [];
+
+      return {
+        id: appointment.id,
+        customer: customerMap.get(appointment.customer_id) ?? "Cliente",
+        service: buildAppointmentServiceSummary(serviceNames),
+        serviceCount: serviceNames.length || 1,
+        employee: employeeMap.get(appointment.assigned_membership_id ?? "") ?? "Sin asignar",
+        time: `${formatTime(appointment.starts_at)} - ${formatTime(appointment.ends_at)}`,
+        startsAt: appointment.starts_at,
+        endsAt: appointment.ends_at,
+        status: humanizeStatus(appointment.status),
+        source: "supabase" as const,
+      };
+    }),
     error: null,
   };
 }
@@ -150,19 +207,32 @@ async function createAppointmentViaTables(businessId: string, input: CreateAppoi
     return { error: "No se pudo inicializar el cliente de Supabase." };
   }
 
-  const { data: serviceData, error: serviceError } = await client
-    .from("services")
-    .select("id, duration_minutes, price")
-    .eq("id", input.serviceId)
-    .maybeSingle();
+  const serviceIds = getUniqueServiceIds(input.serviceIds);
 
-  if (serviceError || !serviceData) {
-    return { error: serviceError?.message ?? "No se pudo cargar el servicio seleccionado." };
+  if (serviceIds.length === 0) {
+    return { error: "Debes seleccionar al menos un servicio." };
   }
 
-  const selectedService = serviceData as ServiceLookupRow;
+  const { data: servicesData, error: serviceError } = await client
+    .from("services")
+    .select("id, name, duration_minutes, price")
+    .in("id", serviceIds)
+    .eq("business_id", businessId)
+    .eq("is_active", true);
+
+  if (serviceError) {
+    return { error: serviceError.message };
+  }
+
+  const selectedServices = (servicesData ?? []) as ServiceLookupRow[];
+
+  if (selectedServices.length !== serviceIds.length) {
+    return { error: "Uno o varios servicios ya no estan disponibles para este negocio." };
+  }
+
   const startsAt = new Date(input.startsAt);
-  const endsAt = addMinutes(startsAt, selectedService.duration_minutes);
+  const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration_minutes, 0);
+  const endsAt = addMinutes(startsAt, totalDuration);
 
   const { data: appointment, error: appointmentError } = await client
     .from("appointments")
@@ -182,12 +252,14 @@ async function createAppointmentViaTables(businessId: string, input: CreateAppoi
     return { error: appointmentError?.message ?? "No se pudo crear la cita." };
   }
 
-  const { error } = await client.from("appointment_services").insert({
-    appointment_id: appointment.id,
-    service_id: input.serviceId,
-    unit_price: selectedService.price,
-    quantity: 1,
-  });
+  const { error } = await client.from("appointment_services").insert(
+    selectedServices.map((service) => ({
+      appointment_id: appointment.id,
+      service_id: service.id,
+      unit_price: service.price,
+      quantity: 1,
+    })),
+  );
 
   return { error: error?.message ?? null };
 }
@@ -223,7 +295,7 @@ export async function listAppointmentOptions(businessId?: string | null): Promis
 
   return {
     customers: normalizeOptions(payload?.customers),
-    services: normalizeOptions(payload?.services),
+    services: normalizeServiceOptions(payload?.services),
     employees: normalizeOptions(payload?.employees),
   };
 }
@@ -261,9 +333,11 @@ export async function listAppointments(businessId?: string | null) {
       id: appointment.id,
       customer: appointment.customer_name ?? "Cliente",
       service: appointment.service_name ?? "Sin servicio",
+      serviceCount: Number(appointment.service_count ?? 1),
       employee: appointment.employee_name ?? "Sin asignar",
-      time: formatTime(appointment.starts_at),
+      time: `${formatTime(appointment.starts_at)} - ${formatTime(appointment.ends_at)}`,
       startsAt: appointment.starts_at,
+      endsAt: appointment.ends_at,
       status: humanizeStatus(appointment.status),
       source: "supabase" as const,
     })),
@@ -285,10 +359,16 @@ export async function createAppointment(
     return { error: "No se pudo inicializar el cliente de Supabase." };
   }
 
+  const serviceIds = getUniqueServiceIds(input.serviceIds);
+
+  if (serviceIds.length === 0) {
+    return { error: "Debes seleccionar al menos un servicio." };
+  }
+
   const { error } = await client.rpc("create_workspace_appointment", {
     target_business_id: businessId,
     target_customer_id: input.customerId,
-    target_service_id: input.serviceId,
+    target_service_ids: serviceIds,
     starts_at_value: new Date(input.startsAt).toISOString(),
     assigned_membership_id_value: input.assignedMembershipId ?? null,
     notes_value: input.notes ?? null,

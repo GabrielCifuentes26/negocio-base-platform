@@ -77,6 +77,7 @@ Puntos fuertes ya cerrados:
 - `services`: lectura y creacion base
 - `products`: lectura y creacion base
 - `appointments`: lectura y creacion base
+- `appointments`: lectura, creacion multi-servicio y resumen operativo mejorado
 - `sales`: lectura y creacion base
 - `users`: listado, cambio de rol e invitaciones
 - `roles`: listado, creacion y edicion de permisos para roles personalizados
@@ -146,6 +147,7 @@ Puntos fuertes ya cerrados:
 - reportes ya soportan rangos de 7, 30 y 90 dias con servicio y hook propios, separados del dashboard diario
 - reportes ya comparan el rango actual contra el periodo anterior equivalente, tanto en UI como en el snapshot y en la exportacion CSV
 - reportes ya permiten rangos personalizados con fechas explicitas, manteniendo snapshot seguro, comparacion equivalente y exportacion consistente
+- citas ya permiten multiples servicios por reserva, con duracion total agregada y visualizacion consolidada en la agenda
 
 ## Migraciones importantes
 
@@ -170,6 +172,7 @@ Orden actual de migraciones:
 - `017_report_snapshot_rpc.sql`
 - `018_report_snapshot_comparisons.sql`
 - `019_report_snapshot_custom_ranges.sql`
+- `020_appointment_multi_service_rpc.sql`
 
 Resumen de las ultimas:
 
@@ -187,6 +190,7 @@ Resumen de las ultimas:
 - `017`: snapshot de reportes por rango con metricas, tendencia y listados recientes dentro del periodo
 - `018`: comparativa del snapshot de reportes contra el periodo anterior equivalente con metricas previas para UI y exportacion
 - `019`: soporte para rangos personalizados en el snapshot de reportes, manteniendo el fallback por dias y la comparacion contra el periodo anterior
+- `020`: opciones y RPC de citas ampliadas para multiples servicios por reserva con duracion total calculada y agenda agregada
 
 ## Variables de entorno actuales
 
@@ -212,11 +216,15 @@ Variables:
 - `services/api/dashboard-service.ts`
 - `services/api/report-service.ts`
 - `services/export/report-export.ts`
+- `services/api/appointment-service.ts`
 - `config/reporting.ts`
 - `types/report.ts`
+- `types/appointment.ts`
 - `modules/onboarding/components/onboarding-wizard.tsx`
 - `modules/reports/components/reports-module.tsx`
 - `modules/reports/lib/use-report-snapshot.ts`
+- `modules/appointments/components/create-appointment-dialog.tsx`
+- `modules/appointments/components/appointments-module.tsx`
 - `modules/auth/components/auth-guard.tsx`
 - `modules/auth/components/accept-invitation-card.tsx`
 - `lib/permissions/catalog.ts`
@@ -245,6 +253,7 @@ Variables:
 - `database/migrations/017_report_snapshot_rpc.sql`
 - `database/migrations/018_report_snapshot_comparisons.sql`
 - `database/migrations/019_report_snapshot_custom_ranges.sql`
+- `database/migrations/020_appointment_multi_service_rpc.sql`
 - `lib/supabase/rpc.ts`
 - `lib/export/csv.ts`
 - `supabase/functions/send-business-invitation/index.ts`
@@ -285,6 +294,7 @@ Archivos nuevos de pruebas:
 - `tests/services/api/dashboard-service.test.ts`
 - `tests/services/api/report-service.test.ts`
 - `tests/services/export/report-export.test.ts`
+- `tests/services/api/appointment-service.test.ts`
 
 ## Documento detallado de lo que falta
 
@@ -317,8 +327,8 @@ Prioridad sugerida para la proxima sesion:
 4. mejorar invitaciones por correo
    registrar estado de entrega, apertura o error si se necesita trazabilidad
 
-5. profundizar reportes
-   siguiente bloque sugerido: comparativas mas ricas entre periodos, filtros por seccion y exportaciones mas profundas aprovechando el snapshot consolidado
+5. profundizar appointments y sales
+   siguiente bloque sugerido: disponibilidad real por empleado en citas y despues lineas detalladas en ventas para que la operacion diaria gane profundidad
 
 ## Prompt sugerido para continuar manana
 

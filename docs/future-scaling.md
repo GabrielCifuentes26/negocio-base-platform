@@ -334,12 +334,17 @@ Falta:
 
 Falta:
 
-- multiples servicios por cita
+- disponibilidad real por empleado
 - bloques de tiempo
 - reasignacion de empleado
-- validacion real de disponibilidad
 - estados mas robustos
 - vista calendario mas fuerte
+
+Ya se avanzo:
+
+- multiples servicios por cita
+- duracion total agregada segun servicios seleccionados
+- agenda con resumen consolidado de servicios por reserva
 
 #### Sales
 

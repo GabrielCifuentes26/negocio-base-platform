@@ -618,7 +618,7 @@ export type Database = {
         Args: {
           target_business_id: string;
           target_customer_id: string;
-          target_service_id: string;
+          target_service_ids: string[];
           starts_at_value: string;
           assigned_membership_id_value?: string | null;
           notes_value?: string | null;
@@ -677,8 +677,10 @@ export type Database = {
           id: string;
           customer_name: string;
           service_name: string;
+          service_count: number;
           employee_name: string;
           starts_at: string;
+          ends_at: string;
           status: string;
         }[];
       };

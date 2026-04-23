@@ -1,6 +1,6 @@
-import { addDays, differenceInCalendarDays, subDays } from "date-fns";
+import { addDays, addMinutes, differenceInCalendarDays, subDays } from "date-fns";
 
-import { formatWeekdayShort } from "@/lib/format";
+import { formatTime, formatWeekdayShort } from "@/lib/format";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isMissingRpcError } from "@/lib/supabase/rpc";
@@ -208,9 +208,11 @@ function getDemoReportSnapshot(rangeSelection: ReportRangeSelection | ReportRang
       id: item.id,
       customer: item.customer,
       service: item.service,
+      serviceCount: 1,
       employee: item.employee,
-      time: item.time,
+      time: `${formatTime(range.rangeStart)} - ${formatTime(addMinutes(range.rangeStart, 45))}`,
       startsAt: range.rangeStart.toISOString(),
+      endsAt: addMinutes(range.rangeStart, 45).toISOString(),
       status: item.status,
       source: "demo",
     })),

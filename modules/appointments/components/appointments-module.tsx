@@ -3,6 +3,7 @@
 import { CalendarRange } from "lucide-react";
 
 import { usePermissionAccess } from "@/hooks/use-permission-access";
+import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -36,7 +37,16 @@ export function AppointmentsModule() {
             columns={[
               { key: "time", label: "Hora" },
               { key: "customer", label: "Cliente" },
-              { key: "service", label: "Servicio" },
+              {
+                key: "service",
+                label: "Servicios",
+                render: (row) => (
+                  <div className="space-y-1">
+                    <p>{row.service}</p>
+                    {row.serviceCount > 1 ? <Badge variant="outline">{row.serviceCount} servicios</Badge> : null}
+                  </div>
+                ),
+              },
               { key: "employee", label: "Empleado" },
               { key: "status", label: "Estado" },
             ]}
