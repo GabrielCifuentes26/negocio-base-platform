@@ -73,7 +73,11 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 
 - existe compatibilidad temporal con claves legacy para no romper instalaciones anteriores de golpe
 - branding, settings, roles, role_permissions, memberships e invitaciones ya tienen una capa administrativa mas fina
-- el siguiente salto natural es llevar esa granularidad a CRUD operativos y a RPC sensibles
+- la escritura operativa ya puede endurecerse por accion con la migracion correspondiente
+- la lectura operativa tambien puede endurecerse por accion en customers, services, products, appointments y sales
+- la navegacion ya exige permisos de lectura para dashboard y modulos operativos
+- los roles personalizados ya normalizan permisos minimos de lectura cuando se asignan permisos de escritura o gestion
+- el siguiente salto natural es revisar RPC sensibles y lecturas cruzadas para evitar combinaciones de permisos que funcionen mal en operaciones complejas
 
 #### Trabajo concreto recomendado
 
@@ -102,6 +106,10 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
    - `sales`
 
 5. si una operacion compleja no es segura solo con RLS, moverla a una RPC bien controlada
+   ejemplo actual a revisar con cuidado:
+   - creacion de citas que necesita leer servicio, cliente y personal
+   - listas operativas que combinan datos de varios modulos con permisos potencialmente distintos
+   - creacion de ventas cuando el rol tiene ventas pero visibilidad limitada sobre clientes
 
 #### Criterio de cierre
 
@@ -120,6 +128,8 @@ Hoy ya hay base de testing con Vitest y algunas pruebas unitarias, pero aun no c
 - existen pruebas unitarias base
 - la infraestructura inicial de tests ya esta preparada
 - ya existe cobertura para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
+- ya existe base de pruebas UI con `jsdom` y `@testing-library/react` para auth y cambio de workspace
+- ya existe cobertura especifica para helpers de permisos, navegacion condicionada y normalizacion de dependencias de permisos
 
 #### Lo que falta
 

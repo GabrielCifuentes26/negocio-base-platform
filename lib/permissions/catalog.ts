@@ -103,12 +103,73 @@ export const permissionAliasMap: Partial<Record<PermissionKey, PermissionKey[]>>
 };
 
 export const moduleAccessRequirements: Partial<Record<ModuleKey, PermissionKey[]>> = {
+  dashboard: ["dashboard.read"],
+  customers: ["customers.read"],
+  services: ["services.read"],
+  products: ["products.read"],
+  appointments: ["appointments.read"],
+  sales: ["sales.read"],
   reports: ["reports.read", "view_reports"],
   branding: ["branding.read", "branding.update", "manage_branding"],
   settings: ["settings.read", "settings.update", "manage_settings"],
   users: ["users.read", "users.manage", "manage_users"],
   roles: ["roles.read", "roles.manage", "manage_roles"],
 };
+
+const permissionDependencyMap: Partial<Record<PermissionKey, PermissionKey[]>> = {
+  "customers.create": ["customers.read"],
+  "customers.update": ["customers.read"],
+  "customers.delete": ["customers.read"],
+  "services.create": ["services.read"],
+  "services.update": ["services.read"],
+  "services.delete": ["services.read"],
+  "products.create": ["products.read"],
+  "products.update": ["products.read"],
+  "products.delete": ["products.read"],
+  "appointments.create": ["appointments.read"],
+  "appointments.update": ["appointments.read"],
+  "appointments.delete": ["appointments.read"],
+  "sales.create": ["sales.read"],
+  "sales.update": ["sales.read"],
+  "sales.delete": ["sales.read"],
+  "users.manage": ["users.read"],
+  "roles.manage": ["roles.read"],
+  "settings.update": ["settings.read"],
+  "branding.update": ["branding.read"],
+  manage_users: ["users.read"],
+  manage_roles: ["roles.read"],
+  manage_settings: ["settings.read"],
+  manage_branding: ["branding.read"],
+  view_reports: ["reports.read"],
+};
+
+export function normalizePermissionKeys(permissionKeys: PermissionKey[]) {
+  const normalized = new Set(permissionKeys);
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (const permissionKey of [...normalized]) {
+      for (const dependency of permissionDependencyMap[permissionKey] ?? []) {
+        if (normalized.has(dependency)) {
+          continue;
+        }
+
+        normalized.add(dependency);
+        changed = true;
+      }
+    }
+  }
+
+  const orderedPermissions = permissionCatalog
+    .map((permission) => permission.key)
+    .filter((permission) => normalized.has(permission));
+
+  const remainingPermissions = [...normalized].filter((permission) => !orderedPermissions.includes(permission));
+
+  return [...orderedPermissions, ...remainingPermissions];
+}
 
 export const defaultRolePermissionMatrix: Record<UserRoleKey, PermissionKey[]> = {
   owner: ["manage_all", ...visiblePermissionKeys.filter((permission) => permission !== "manage_all")],

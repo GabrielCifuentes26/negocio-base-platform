@@ -3,6 +3,7 @@
 import { BrushCleaning } from "lucide-react";
 
 import { formatCurrency } from "@/lib/format";
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -13,6 +14,8 @@ import { useServices } from "@/modules/services/lib/use-services";
 
 export function ServicesModule() {
   const { rows, loading, error, mode, addService } = useServices();
+  const { can } = usePermissionAccess();
+  const canCreateServices = can("services.create");
 
   if (loading) {
     return <ModuleLoader />;
@@ -22,7 +25,7 @@ export function ServicesModule() {
     <PageShell
       title="Servicios"
       description="Catalogo independiente para negocios orientados a tiempo, recursos y personal."
-      action={<CreateServiceDialog onCreate={addService} />}
+      action={canCreateServices ? <CreateServiceDialog onCreate={addService} /> : undefined}
     >
       <ModuleCard
         title="Catalogo de servicios"
@@ -54,6 +57,13 @@ export function ServicesModule() {
           />
         )}
       </ModuleCard>
+      {!canCreateServices ? (
+        <EmptyState
+          icon={BrushCleaning}
+          title="Acceso en modo lectura"
+          description="Tu rol actual puede consultar servicios, pero no crear nuevos registros."
+        />
+      ) : null}
       {error ? <EmptyState icon={BrushCleaning} title="No se pudieron cargar los servicios" description={error} /> : null}
     </PageShell>
   );

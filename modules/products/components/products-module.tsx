@@ -3,6 +3,7 @@
 import { Package } from "lucide-react";
 
 import { formatCurrency } from "@/lib/format";
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -13,6 +14,8 @@ import { useProducts } from "@/modules/products/lib/use-products";
 
 export function ProductsModule() {
   const { rows, loading, error, mode, addProduct } = useProducts();
+  const { can } = usePermissionAccess();
+  const canCreateProducts = can("products.create");
 
   if (loading) {
     return <ModuleLoader />;
@@ -22,7 +25,7 @@ export function ProductsModule() {
     <PageShell
       title="Productos"
       description="Catalogo de inventario ligero desacoplado del modulo de servicios para soportar retail o consumo interno."
-      action={<CreateProductDialog onCreate={addProduct} />}
+      action={canCreateProducts ? <CreateProductDialog onCreate={addProduct} /> : undefined}
     >
       <ModuleCard
         title="Inventario base"
@@ -50,6 +53,13 @@ export function ProductsModule() {
           />
         )}
       </ModuleCard>
+      {!canCreateProducts ? (
+        <EmptyState
+          icon={Package}
+          title="Acceso en modo lectura"
+          description="Tu rol actual puede consultar productos, pero no crear nuevos registros."
+        />
+      ) : null}
       {error ? <EmptyState icon={Package} title="No se pudieron cargar los productos" description={error} /> : null}
     </PageShell>
   );

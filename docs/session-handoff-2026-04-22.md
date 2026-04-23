@@ -8,7 +8,8 @@ Actualizado al cierre de la sesion con:
 - GitHub Pages activo por workflow
 - deploy exitoso en la rama `main`
 - ultimo commit funcional de despliegue: `179b376 fix: enable github pages during deploy`
-- ultimo commit general del proyecto: `737c1ff feat: harden admin permissions and rls`
+- ultimo bloque tecnico previo a esta tanda: `737c1ff feat: harden admin permissions and rls`
+- este handoff ya describe cambios posteriores de testing y seguridad aunque el hash exacto mas reciente debe confirmarse con `git log -1 --oneline`
 
 ## Objetivo del proyecto
 
@@ -46,7 +47,7 @@ Puntos fuertes ya cerrados:
 - repositorio GitHub: `https://github.com/GabrielCifuentes26/negocio-base-platform`
 - visibilidad actual: `public`
 - rama principal: `main`
-- ultimo commit remoto actual: `737c1ff`
+- ultimo commit remoto actual: confirmar con `git log -1 --oneline` o revisando GitHub al retomar
 - GitHub Pages publicado en: `https://gabrielcifuentes26.github.io/negocio-base-platform/`
 - ultimo workflow de CI: `success`
 - ultimo workflow de Pages: `success`
@@ -123,6 +124,7 @@ Puntos fuertes ya cerrados:
 - workflow de GitHub Pages ya presente
 - pruebas unitarias base con Vitest
 - pruebas nuevas para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
+- pruebas UI con `jsdom` y `@testing-library/react` para `auth-context`, `auth-guard` y `workspace-switcher`
 
 7. Seguridad y permisos
 
@@ -130,6 +132,11 @@ Puntos fuertes ya cerrados:
 - compatibilidad temporal con permisos legacy como `manage_users`, `manage_roles` y `manage_settings`
 - UI sensible alineada a lectura versus edicion en users, roles, settings y branding
 - migracion nueva para permisos por accion y endurecimiento de RLS administrativa
+- UI operativa alineada a permisos de creacion en customers, services, products, appointments y sales
+- migracion nueva para endurecer escritura operativa por accion sin bloquear lectura de golpe
+- acceso por modulo alineado ya con permisos de lectura en dashboard y modulos operativos
+- roles personalizados normalizan dependencias minimas de lectura cuando se asignan permisos de escritura o gestion
+- migracion nueva para endurecer tambien la lectura operativa por accion en tablas principales
 
 ## Migraciones importantes
 
@@ -145,6 +152,9 @@ Orden actual de migraciones:
 - `008_business_onboarding_bootstrap.sql`
 - `009_profile_preferred_business.sql`
 - `010_action_permissions_and_admin_rls.sql`
+- `011_operational_write_permissions.sql`
+- `012_rpc_and_business_consistency_hardening.sql`
+- `013_operational_read_permissions.sql`
 
 Resumen de las ultimas:
 
@@ -153,6 +163,9 @@ Resumen de las ultimas:
 - `008`: bootstrap del primer negocio
 - `009`: negocio preferido persistido en perfil
 - `010`: permisos por accion, helper SQL de permisos y RLS administrativa mas fina para branding, settings, roles, memberships e invitaciones
+- `011`: politicas de escritura por accion para customers, services, products, appointments, appointment_services, sales y sale_items
+- `012`: validacion de consistencia entre negocio, rol y membresia; onboarding e invitaciones sincronizan tambien `preferred_business_id`
+- `013`: politicas de lectura por accion para customers, services, products, appointments, appointment_services, sales y sale_items
 
 ## Variables de entorno actuales
 
@@ -178,13 +191,23 @@ Variables:
 - `lib/permissions/catalog.ts`
 - `lib/permissions/ability.ts`
 - `modules/roles/components/role-permissions-editor.tsx`
+- `modules/roles/components/create-role-dialog.tsx`
+- `modules/auth/components/module-access-guard.tsx`
 - `components/layout/workspace-switcher.tsx`
+- `modules/customers/components/customers-module.tsx`
+- `modules/services/components/services-module.tsx`
+- `modules/products/components/products-module.tsx`
+- `modules/appointments/components/appointments-module.tsx`
+- `modules/sales/components/sales-module.tsx`
 - `components/forms/business-settings-form.tsx`
 - `components/forms/business-modules-form.tsx`
 - `components/forms/branding-settings-form.tsx`
 - `database/migrations/008_business_onboarding_bootstrap.sql`
 - `database/migrations/009_profile_preferred_business.sql`
 - `database/migrations/010_action_permissions_and_admin_rls.sql`
+- `database/migrations/011_operational_write_permissions.sql`
+- `database/migrations/012_rpc_and_business_consistency_hardening.sql`
+- `database/migrations/013_operational_read_permissions.sql`
 - `supabase/functions/send-business-invitation/index.ts`
 
 ## Validacion actual
@@ -211,6 +234,10 @@ Archivos nuevos de pruebas:
 
 - `tests/lib/auth/workspace-preferences.test.ts`
 - `tests/lib/permissions/ability.test.ts`
+- `tests/lib/permissions/catalog.test.ts`
+- `tests/lib/auth/auth-context.test.tsx`
+- `tests/modules/auth/auth-guard.test.tsx`
+- `tests/components/layout/workspace-switcher.test.tsx`
 - `tests/services/api/onboarding-service.test.ts`
 - `tests/services/api/invitation-service.test.ts`
 - `tests/services/api/workspace-service.test.ts`
@@ -235,10 +262,10 @@ Ese documento ya no es un resumen corto. Incluye:
 Prioridad sugerida para la proxima sesion:
 
 1. subir el nivel de pruebas
-   siguiente bloque sugerido: `auth-context`, guards de autenticacion y componentes criticos de onboarding o workspace
+   siguiente bloque sugerido: componentes criticos de onboarding y formularios operativos principales, incluyendo dependencias entre permisos y formularios
 
 2. endurecer seguridad
-   siguiente bloque sugerido: extender la logica granular a CRUD operativos (`customers`, `services`, `products`, `appointments`, `sales`) y revisar RPC sensibles
+   siguiente bloque sugerido: revisar RPC y servicios que hoy dependen de lecturas cruzadas, especialmente `appointments` y `sales`, para decidir si conviene mover operaciones complejas a RPC controladas
 
 3. mejorar onboarding
    agregar horarios iniciales, servicios base sugeridos y presets por industria

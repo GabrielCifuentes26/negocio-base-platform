@@ -2,6 +2,7 @@
 
 import { Users } from "lucide-react";
 
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -12,6 +13,8 @@ import { useCustomers } from "@/modules/customers/lib/use-customers";
 
 export function CustomersModule() {
   const { rows, loading, error, mode, addCustomer } = useCustomers();
+  const { can } = usePermissionAccess();
+  const canCreateCustomers = can("customers.create");
 
   if (loading) {
     return <ModuleLoader />;
@@ -21,7 +24,7 @@ export function CustomersModule() {
     <PageShell
       title="Clientes"
       description="Entidad reusable para multiples negocios, sin amarrar campos a un sector especifico."
-      action={<CreateCustomerDialog onCreate={addCustomer} />}
+      action={canCreateCustomers ? <CreateCustomerDialog onCreate={addCustomer} /> : undefined}
     >
       <ModuleCard
         title="Directorio de clientes"
@@ -51,6 +54,13 @@ export function CustomersModule() {
           icon={Users}
           title="No se pudieron cargar los clientes"
           description={error}
+        />
+      ) : null}
+      {!canCreateCustomers ? (
+        <EmptyState
+          icon={Users}
+          title="Acceso en modo lectura"
+          description="Tu rol actual puede consultar clientes, pero no crear nuevos registros."
         />
       ) : null}
       <EmptyState

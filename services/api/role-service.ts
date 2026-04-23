@@ -1,6 +1,6 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { isLegacyPermissionKey } from "@/lib/permissions/catalog";
+import { isLegacyPermissionKey, normalizePermissionKeys } from "@/lib/permissions/catalog";
 import { demoPermissions, demoRoles } from "@/services/api/demo-data";
 import type { PermissionKey } from "@/types/auth";
 import type { CreateRoleInput, PermissionListItem, RoleListItem } from "@/types/role";
@@ -206,14 +206,16 @@ export async function createRole(businessId: string | null | undefined, input: C
     return { error: error?.message ?? "No se pudo crear el rol." };
   }
 
-  if (input.permissionKeys.length === 0) {
+  const normalizedPermissionKeys = normalizePermissionKeys(input.permissionKeys);
+
+  if (normalizedPermissionKeys.length === 0) {
     return { error: null };
   }
 
   const { data: permissions, error: permissionError } = await client
     .from("permissions")
     .select("id, key")
-    .in("key", input.permissionKeys);
+    .in("key", normalizedPermissionKeys);
 
   if (permissionError) {
     return { error: permissionError.message };
@@ -270,14 +272,16 @@ export async function updateRolePermissions(roleId: string, permissionKeys: stri
     return { error: deleteError.message };
   }
 
-  if (permissionKeys.length === 0) {
+  const normalizedPermissionKeys = normalizePermissionKeys(permissionKeys as PermissionKey[]);
+
+  if (normalizedPermissionKeys.length === 0) {
     return { error: null };
   }
 
   const { data: permissions, error: permissionError } = await client
     .from("permissions")
     .select("id, key")
-    .in("key", permissionKeys);
+    .in("key", normalizedPermissionKeys);
 
   if (permissionError) {
     return { error: permissionError.message };

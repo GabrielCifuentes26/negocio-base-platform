@@ -2,6 +2,7 @@
 
 import { CalendarRange } from "lucide-react";
 
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -12,6 +13,8 @@ import { useAppointments } from "@/modules/appointments/lib/use-appointments";
 
 export function AppointmentsModule() {
   const { rows, options, loading, error, mode, addAppointment } = useAppointments();
+  const { can } = usePermissionAccess();
+  const canCreateAppointments = can("appointments.create");
 
   if (loading) {
     return <ModuleLoader />;
@@ -21,7 +24,7 @@ export function AppointmentsModule() {
     <PageShell
       title="Reservas y citas"
       description="Agenda reusable para negocios con atencion por horario, recurso o empleado."
-      action={<CreateAppointmentDialog options={options} onCreate={addAppointment} />}
+      action={canCreateAppointments ? <CreateAppointmentDialog options={options} onCreate={addAppointment} /> : undefined}
     >
       <ModuleCard
         title="Agenda activa"
@@ -46,6 +49,13 @@ export function AppointmentsModule() {
           />
         )}
       </ModuleCard>
+      {!canCreateAppointments ? (
+        <EmptyState
+          icon={CalendarRange}
+          title="Acceso en modo lectura"
+          description="Tu rol actual puede consultar la agenda, pero no crear nuevas reservas."
+        />
+      ) : null}
       {error ? <EmptyState icon={CalendarRange} title="No se pudieron cargar las reservas" description={error} /> : null}
     </PageShell>
   );

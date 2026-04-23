@@ -9,7 +9,7 @@ describe("module navigation config", () => {
   });
 
   it("filters navigation by enabled modules and permissions", () => {
-    const navigation = getNavigationItems(["dashboard", "reports", "users"], ["users.read"]);
+    const navigation = getNavigationItems(["dashboard", "reports", "users"], ["dashboard.read", "users.read"]);
 
     expect(navigation.map((item) => item.href)).toEqual(["/dashboard", "/users"]);
   });

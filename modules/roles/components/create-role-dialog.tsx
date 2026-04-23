@@ -10,6 +10,7 @@ import { EntityDialog } from "@/components/shared/entity-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { normalizePermissionKeys } from "@/lib/permissions/catalog";
 import type { PermissionKey } from "@/types/auth";
 import type { CreateRoleInput, PermissionListItem } from "@/types/role";
 
@@ -52,7 +53,7 @@ export function CreateRoleDialog({
       ? current.filter((item) => item !== permissionKey)
       : [...current, permissionKey];
 
-    form.setValue("permissionKeys", next, { shouldValidate: true });
+    form.setValue("permissionKeys", normalizePermissionKeys(next as PermissionKey[]), { shouldValidate: true });
   }
 
   async function onSubmit(values: RoleFormValues) {

@@ -31,6 +31,8 @@ describe("permission ability helpers", () => {
     expect(canAccessModuleByPermission("reports", [])).toBe(false);
     expect(canAccessModuleByPermission("users", ["users.read"])).toBe(true);
     expect(canAccessModuleByPermission("settings", ["manage_settings"])).toBe(true);
-    expect(canAccessModuleByPermission("customers", [])).toBe(true);
+    expect(canAccessModuleByPermission("customers", [])).toBe(false);
+    expect(canAccessModuleByPermission("customers", ["customers.read"])).toBe(true);
+    expect(canAccessModuleByPermission("dashboard", [])).toBe(false);
   });
 });
