@@ -645,6 +645,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_workspace_dashboard_snapshot: {
+        Args: {
+          target_business_id: string;
+        };
+        Returns: Json;
+      };
       get_sale_form_options: {
         Args: {
           target_business_id: string;

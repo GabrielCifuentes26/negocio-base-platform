@@ -78,6 +78,7 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 - la navegacion ya exige permisos de lectura para dashboard y modulos operativos
 - los roles personalizados ya normalizan permisos minimos de lectura cuando se asignan permisos de escritura o gestion
 - appointments y sales ya tienen RPC dedicadas para opciones, listados y creacion cuando la operacion necesita datos de otros modulos
+- dashboard y reportes ya pueden apoyarse en un snapshot consolidado por RPC para no depender de permisos operativos dispersos
 - el siguiente salto natural es revisar si otros modulos necesitan el mismo patron y endurecer mas RPC sensibles de negocio
 
 #### Trabajo concreto recomendado
@@ -109,7 +110,7 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 5. si una operacion compleja no es segura solo con RLS, moverla a una RPC bien controlada
    ejemplo actual a revisar con cuidado:
    - combinaciones futuras de ventas con items detallados, productos y servicios en la misma operacion
-   - reportes que mezclen ventas, citas y clientes sin exponer datos innecesarios
+   - reportes que mezclen ventas, citas y clientes sin exponer datos innecesarios ni duplicar logica del dashboard
    - automatizaciones futuras de inventario o facturacion sobre multiples tablas
 
 #### Criterio de cierre
@@ -132,6 +133,7 @@ Hoy ya hay base de testing con Vitest y algunas pruebas unitarias, pero aun no c
 - ya existe base de pruebas UI con `jsdom` y `@testing-library/react` para auth y cambio de workspace
 - ya existe cobertura especifica para helpers de permisos, navegacion condicionada y normalizacion de dependencias de permisos
 - ya existe cobertura de servicios para RPC operativas de `appointments` y `sales`, incluido fallback de compatibilidad
+- ya existe cobertura del snapshot RPC de dashboard con fallback de compatibilidad
 
 #### Lo que falta
 
