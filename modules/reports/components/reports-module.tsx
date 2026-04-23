@@ -1,20 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import { BarChart3, CalendarRange, Coins, Users } from "lucide-react";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 import { businessConfig } from "@/config/business";
 import { formatCurrency } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 import { useDashboard } from "@/modules/dashboard/lib/use-dashboard";
+import { downloadDashboardSnapshotCsv } from "@/services/export/report-export";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
 import { EmptyState } from "@/components/states/empty-state";
 import { ModuleLoader } from "@/components/states/module-loader";
+import { Button } from "@/components/ui/button";
 
 export function ReportsModule() {
   const { workspace } = useAuth();
   const business = workspace?.business ?? businessConfig;
   const { snapshot, loading } = useDashboard();
+  const [exporting, setExporting] = useState(false);
+
+  function handleExport() {
+    setExporting(true);
+    const success = downloadDashboardSnapshotCsv(snapshot, business.name);
+    setExporting(false);
+
+    if (!success) {
+      toast.error("La exportacion CSV solo esta disponible en navegador.");
+      return;
+    }
+
+    toast.success("Reporte exportado en CSV.");
+  }
 
   if (loading) {
     return <ModuleLoader />;
@@ -24,6 +43,12 @@ export function ReportsModule() {
     <PageShell
       title="Reportes basicos"
       description="Indicadores iniciales para decisiones rapidas, listos para ampliarse a vistas analiticas mas profundas."
+      action={
+        <Button variant="outline" className="rounded-full px-5" onClick={handleExport} disabled={exporting}>
+          <Download />
+          {exporting ? "Exportando..." : "Exportar CSV"}
+        </Button>
+      }
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ModuleCard title="Ingresos" description={`Moneda activa: ${business.currency.code}.`}>

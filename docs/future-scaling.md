@@ -356,7 +356,7 @@ Falta:
 
 - filtros por rango de fechas
 - comparativas
-- exportacion CSV
+- exportacion CSV enriquecida por rango y por seccion
 - eventualmente PDF
 - metricas por modulo
 

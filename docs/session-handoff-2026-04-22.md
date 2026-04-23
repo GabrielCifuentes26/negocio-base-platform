@@ -142,6 +142,7 @@ Puntos fuertes ya cerrados:
 - RPC nuevas para `appointments` y `sales` en escenarios con lecturas cruzadas entre modulos
 - servicios frontend de citas y ventas preparados para usar RPC con fallback temporal a consultas directas mientras la migracion no exista
 - dashboard y reportes ya pueden consumir un snapshot consolidado por RPC en vez de depender de lecturas operativas separadas
+- reportes ya pueden exportar el snapshot actual a CSV desde frontend
 
 ## Migraciones importantes
 
@@ -200,7 +201,9 @@ Variables:
 - `services/api/appointment-service.ts`
 - `services/api/sale-service.ts`
 - `services/api/dashboard-service.ts`
+- `services/export/report-export.ts`
 - `modules/onboarding/components/onboarding-wizard.tsx`
+- `modules/reports/components/reports-module.tsx`
 - `modules/auth/components/auth-guard.tsx`
 - `modules/auth/components/accept-invitation-card.tsx`
 - `lib/permissions/catalog.ts`
@@ -227,6 +230,7 @@ Variables:
 - `database/migrations/015_dashboard_snapshot_rpc.sql`
 - `database/migrations/016_onboarding_presets_and_seed_data.sql`
 - `lib/supabase/rpc.ts`
+- `lib/export/csv.ts`
 - `supabase/functions/send-business-invitation/index.ts`
 
 ## Validacion actual
@@ -263,6 +267,7 @@ Archivos nuevos de pruebas:
 - `tests/services/api/appointment-service.test.ts`
 - `tests/services/api/sale-service.test.ts`
 - `tests/services/api/dashboard-service.test.ts`
+- `tests/services/export/report-export.test.ts`
 
 ## Documento detallado de lo que falta
 
@@ -294,6 +299,9 @@ Prioridad sugerida para la proxima sesion:
 
 4. mejorar invitaciones por correo
    registrar estado de entrega, apertura o error si se necesita trazabilidad
+
+5. profundizar reportes
+   siguiente bloque sugerido: filtros por rango y exportaciones mas ricas aprovechando el snapshot consolidado
 
 ## Prompt sugerido para continuar manana
 
