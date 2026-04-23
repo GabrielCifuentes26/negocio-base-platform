@@ -68,9 +68,9 @@ export function OnboardingWizard() {
       contactPhone: businessConfig.contact.phone,
       address: businessConfig.contact.address,
       welcomeMessage: initialTemplate.defaultWelcomeMessage,
-      locale: businessConfig.locale,
-      currencyCode: businessConfig.currency.code,
-      timezone: "America/Guatemala",
+      locale: initialTemplate.defaultLocale,
+      currencyCode: initialTemplate.defaultCurrencyCode,
+      timezone: initialTemplate.defaultTimezone,
       modules: initialTemplate.recommendedModules,
     },
   });
@@ -117,6 +117,9 @@ export function OnboardingWizard() {
 
     form.setValue("templateKey", template.key, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     form.setValue("modules", template.recommendedModules, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    form.setValue("locale", template.defaultLocale, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    form.setValue("currencyCode", template.defaultCurrencyCode, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    form.setValue("timezone", template.defaultTimezone, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     form.setValue("welcomeMessage", template.defaultWelcomeMessage, {
       shouldDirty: true,
       shouldTouch: true,
@@ -170,6 +173,9 @@ export function OnboardingWizard() {
       currencyCode: values.currencyCode,
       timezone: values.timezone,
       modules: values.modules,
+      initialHours: activeTemplate.defaultHours,
+      seedServices: activeTemplate.suggestedServices,
+      seedProducts: activeTemplate.suggestedProducts,
       primaryColor: activeTemplate.branding.primaryColor,
       accentColor: activeTemplate.branding.accentColor,
       fontFamily: activeTemplate.branding.fontFamily,
@@ -272,6 +278,22 @@ export function OnboardingWizard() {
                     {platformModules.find((module) => module.key === moduleKey)?.label ?? moduleKey}
                   </Badge>
                 ))}
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-muted/20 p-4">
+                <p className="text-sm font-medium">Horario sugerido</p>
+                <div className="mt-3 grid gap-2">
+                  {activeTemplate.defaultHours.filter((item) => item.isOpen).slice(0, 3).map((item) => (
+                    <p key={item.day} className="text-sm text-muted-foreground">
+                      {item.label}: {item.opensAt} - {item.closesAt}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-muted/20 p-4">
+                <p className="text-sm font-medium">Carga inicial sugerida</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {activeTemplate.suggestedServices.length} servicios y {activeTemplate.suggestedProducts.length} productos listos para sembrar en el arranque.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -405,6 +427,48 @@ export function OnboardingWizard() {
                   <div className="rounded-3xl border border-dashed border-border/80 bg-muted/20 p-4 text-sm text-muted-foreground">
                     Si llegaste por una invitacion a otro negocio, puedes aceptarla despues con el enlace recibido y
                     tu cuenta mantendra acceso a multiples espacios.
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-3xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-sm font-medium">Servicios sugeridos</p>
+                      <div className="mt-3 space-y-2">
+                        {activeTemplate.suggestedServices.length > 0 ? (
+                          activeTemplate.suggestedServices.map((service) => (
+                            <div key={service.name} className="rounded-2xl bg-white/80 px-3 py-3 text-sm">
+                              <p className="font-medium">{service.name}</p>
+                              <p className="text-muted-foreground">
+                                {service.durationMinutes} min · {service.price}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Esta plantilla inicia sin servicios sugeridos para que configures tu propio catalogo.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-sm font-medium">Productos sugeridos</p>
+                      <div className="mt-3 space-y-2">
+                        {activeTemplate.suggestedProducts.length > 0 ? (
+                          activeTemplate.suggestedProducts.map((product) => (
+                            <div key={product.name} className="rounded-2xl bg-white/80 px-3 py-3 text-sm">
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-muted-foreground">
+                                Stock inicial {product.stock} · {product.price}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Esta plantilla no siembra productos por defecto para mantener el arranque mas simple.
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : null}

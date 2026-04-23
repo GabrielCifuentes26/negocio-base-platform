@@ -92,6 +92,8 @@ Puntos fuertes ya cerrados:
 - RPC para aceptar invitaciones y crear o reactivar membresia
 - onboarding inicial en `/onboarding` para crear el primer negocio desde la UI
 - guard que redirige a onboarding cuando el usuario no tiene un negocio activo
+- plantillas de onboarding enriquecidas con horarios base, servicios sugeridos y productos sugeridos
+- bootstrap del onboarding ya puede sembrar horas, servicios y productos iniciales segun la plantilla elegida
 
 2. Branding y assets
 
@@ -160,6 +162,7 @@ Orden actual de migraciones:
 - `013_operational_read_permissions.sql`
 - `014_operational_cross_module_rpcs.sql`
 - `015_dashboard_snapshot_rpc.sql`
+- `016_onboarding_presets_and_seed_data.sql`
 
 Resumen de las ultimas:
 
@@ -173,6 +176,7 @@ Resumen de las ultimas:
 - `013`: politicas de lectura por accion para customers, services, products, appointments, appointment_services, sales y sale_items
 - `014`: RPC seguras para opciones, listados y creacion de citas y ventas cuando la operacion depende de datos de otros modulos
 - `015`: snapshot consolidado para dashboard y reportes con permisos `dashboard.read` o `reports.read`
+- `016`: presets de onboarding con horarios y siembra inicial de servicios y productos
 
 ## Variables de entorno actuales
 
@@ -192,6 +196,7 @@ Variables:
 - `services/api/workspace-service.ts`
 - `services/api/invitation-service.ts`
 - `services/api/onboarding-service.ts`
+- `config/onboarding.ts`
 - `services/api/appointment-service.ts`
 - `services/api/sale-service.ts`
 - `services/api/dashboard-service.ts`
@@ -220,6 +225,7 @@ Variables:
 - `database/migrations/013_operational_read_permissions.sql`
 - `database/migrations/014_operational_cross_module_rpcs.sql`
 - `database/migrations/015_dashboard_snapshot_rpc.sql`
+- `database/migrations/016_onboarding_presets_and_seed_data.sql`
 - `lib/supabase/rpc.ts`
 - `supabase/functions/send-business-invitation/index.ts`
 
@@ -284,7 +290,7 @@ Prioridad sugerida para la proxima sesion:
    siguiente bloque sugerido: decidir si el patron de snapshot/RPC debe extenderse a reportes mas avanzados, exportaciones o automatizaciones operativas futuras
 
 3. mejorar onboarding
-   agregar horarios iniciales, servicios base sugeridos y presets por industria
+   siguiente bloque sugerido: convertir los presets en un wizard todavia mas guiado con pasos por horarios, rubro y confirmacion de semillas antes de crear el negocio
 
 4. mejorar invitaciones por correo
    registrar estado de entrega, apertura o error si se necesita trazabilidad

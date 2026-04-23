@@ -602,6 +602,9 @@ export type Database = {
           currency_code_value?: string | null;
           timezone_value?: string | null;
           active_modules?: Json;
+          initial_hours?: Json;
+          seed_services?: Json;
+          seed_products?: Json;
           primary_color?: string | null;
           accent_color?: string | null;
           font_family?: string | null;

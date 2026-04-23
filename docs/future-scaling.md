@@ -197,16 +197,15 @@ El onboarding actual ya crea el primer negocio, pero todavia es una version base
 - crea negocio inicial
 - activa estructura base
 - redirige cuando el usuario no tiene workspace
+- ya existen plantillas con modulos recomendados, horarios base y siembra inicial de servicios y productos
 
 #### Lo que falta
 
 - wizard mas completo por pasos
-- horarios iniciales
 - moneda inicial y formato regional
-- modulo activos preseleccionados por industria
 - datos de contacto
 - branding inicial minimo
-- creacion opcional de servicios o categorias sugeridas
+- confirmacion editable de las semillas sugeridas antes de ejecutar el alta
 
 #### Trabajo concreto recomendado
 
@@ -230,6 +229,8 @@ El onboarding actual ya crea el primer negocio, pero todavia es una version base
    - nombre sugerido de categorias
    - modulos mas utiles
    - servicios iniciales sugeridos
+   - productos iniciales sugeridos cuando aplique
+   - horario base sugerido
    - textos de ejemplo
 
 4. extender persistencia
