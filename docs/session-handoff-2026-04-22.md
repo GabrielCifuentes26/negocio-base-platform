@@ -144,6 +144,8 @@ Puntos fuertes ya cerrados:
 - dashboard y reportes ya pueden consumir un snapshot consolidado por RPC en vez de depender de lecturas operativas separadas
 - reportes ya pueden exportar el snapshot actual a CSV desde frontend
 - reportes ya soportan rangos de 7, 30 y 90 dias con servicio y hook propios, separados del dashboard diario
+- reportes ya comparan el rango actual contra el periodo anterior equivalente, tanto en UI como en el snapshot y en la exportacion CSV
+- reportes ya permiten rangos personalizados con fechas explicitas, manteniendo snapshot seguro, comparacion equivalente y exportacion consistente
 
 ## Migraciones importantes
 
@@ -166,6 +168,8 @@ Orden actual de migraciones:
 - `015_dashboard_snapshot_rpc.sql`
 - `016_onboarding_presets_and_seed_data.sql`
 - `017_report_snapshot_rpc.sql`
+- `018_report_snapshot_comparisons.sql`
+- `019_report_snapshot_custom_ranges.sql`
 
 Resumen de las ultimas:
 
@@ -181,6 +185,8 @@ Resumen de las ultimas:
 - `015`: snapshot consolidado para dashboard y reportes con permisos `dashboard.read` o `reports.read`
 - `016`: presets de onboarding con horarios y siembra inicial de servicios y productos
 - `017`: snapshot de reportes por rango con metricas, tendencia y listados recientes dentro del periodo
+- `018`: comparativa del snapshot de reportes contra el periodo anterior equivalente con metricas previas para UI y exportacion
+- `019`: soporte para rangos personalizados en el snapshot de reportes, manteniendo el fallback por dias y la comparacion contra el periodo anterior
 
 ## Variables de entorno actuales
 
@@ -206,6 +212,8 @@ Variables:
 - `services/api/dashboard-service.ts`
 - `services/api/report-service.ts`
 - `services/export/report-export.ts`
+- `config/reporting.ts`
+- `types/report.ts`
 - `modules/onboarding/components/onboarding-wizard.tsx`
 - `modules/reports/components/reports-module.tsx`
 - `modules/reports/lib/use-report-snapshot.ts`
@@ -235,6 +243,8 @@ Variables:
 - `database/migrations/015_dashboard_snapshot_rpc.sql`
 - `database/migrations/016_onboarding_presets_and_seed_data.sql`
 - `database/migrations/017_report_snapshot_rpc.sql`
+- `database/migrations/018_report_snapshot_comparisons.sql`
+- `database/migrations/019_report_snapshot_custom_ranges.sql`
 - `lib/supabase/rpc.ts`
 - `lib/export/csv.ts`
 - `supabase/functions/send-business-invitation/index.ts`
@@ -308,7 +318,7 @@ Prioridad sugerida para la proxima sesion:
    registrar estado de entrega, apertura o error si se necesita trazabilidad
 
 5. profundizar reportes
-   siguiente bloque sugerido: filtros personalizados por fechas y comparativas entre periodos aprovechando el snapshot consolidado
+   siguiente bloque sugerido: comparativas mas ricas entre periodos, filtros por seccion y exportaciones mas profundas aprovechando el snapshot consolidado
 
 ## Prompt sugerido para continuar manana
 

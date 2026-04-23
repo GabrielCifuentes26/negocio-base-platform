@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { getReportSnapshot } from "@/services/api/report-service";
-import type { ReportRangeKey, ReportSnapshot } from "@/types/report";
+import type { ReportRangeSelection, ReportSnapshot } from "@/types/report";
 
 const emptySnapshot: ReportSnapshot = {
   mode: "demo",
@@ -19,13 +19,29 @@ const emptySnapshot: ReportSnapshot = {
     activeCustomers: 0,
     conversionRate: 0,
   },
+  comparison: {
+    previousRangeStart: new Date().toISOString(),
+    previousRangeEnd: new Date().toISOString(),
+    previousMetrics: {
+      revenue: 0,
+      appointmentsCount: 0,
+      activeCustomers: 0,
+      conversionRate: 0,
+    },
+    metricChanges: {
+      revenue: { current: 0, previous: 0, delta: 0, deltaPercent: 0, direction: "neutral" },
+      appointmentsCount: { current: 0, previous: 0, delta: 0, deltaPercent: 0, direction: "neutral" },
+      activeCustomers: { current: 0, previous: 0, delta: 0, deltaPercent: 0, direction: "neutral" },
+      conversionRate: { current: 0, previous: 0, delta: 0, deltaPercent: 0, direction: "neutral" },
+    },
+  },
   appointments: [],
   sales: [],
   trend: [],
   error: null,
 };
 
-export function useReportSnapshot(rangeKey: ReportRangeKey) {
+export function useReportSnapshot(selection: ReportRangeSelection) {
   const { workspace, supabaseEnabled, status } = useAuth();
   const [snapshot, setSnapshot] = useState<ReportSnapshot>(emptySnapshot);
   const [loading, setLoading] = useState(true);
@@ -36,20 +52,25 @@ export function useReportSnapshot(rangeKey: ReportRangeKey) {
     }
 
     let isActive = true;
+    startTransition(() => {
+      setLoading(true);
+    });
 
-    void getReportSnapshot(workspace?.businessId, rangeKey).then((result) => {
+    void getReportSnapshot(workspace?.businessId, selection).then((result) => {
       if (!isActive) {
         return;
       }
 
-      setSnapshot(result);
-      setLoading(false);
+      startTransition(() => {
+        setSnapshot(result);
+        setLoading(false);
+      });
     });
 
     return () => {
       isActive = false;
     };
-  }, [rangeKey, status, supabaseEnabled, workspace?.businessId]);
+  }, [selection, status, supabaseEnabled, workspace?.businessId]);
 
   return { snapshot, loading };
 }

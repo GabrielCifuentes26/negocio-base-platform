@@ -41,11 +41,19 @@ describe("report service", () => {
       data: {
         rangeStart: "2026-03-25",
         rangeEnd: "2026-04-23",
+        previousRangeStart: "2026-02-24",
+        previousRangeEnd: "2026-03-24",
         metrics: {
           revenue: 5300,
           appointmentsCount: 22,
           activeCustomers: 17,
           conversionRate: 45,
+        },
+        previousMetrics: {
+          revenue: 4100,
+          appointmentsCount: 18,
+          activeCustomers: 14,
+          conversionRate: 39,
         },
         appointments: [],
         sales: [],
@@ -70,7 +78,57 @@ describe("report service", () => {
     expect(snapshot.metrics.revenue).toBe(5300);
     expect(snapshot.metrics.appointmentsCount).toBe(22);
     expect(snapshot.rangeKey).toBe("30d");
+    expect(snapshot.comparison.previousMetrics.revenue).toBe(4100);
+    expect(snapshot.comparison.metricChanges.revenue.delta).toBe(1200);
     expect(snapshot.trend).toHaveLength(2);
+  });
+
+  it("passes explicit start and end dates when the range is custom", async () => {
+    isSupabaseConfiguredMock.mockReturnValue(true);
+    const rpcMock = vi.fn().mockResolvedValue({
+      data: {
+        rangeStart: "2026-04-01",
+        rangeEnd: "2026-04-15",
+        previousRangeStart: "2026-03-17",
+        previousRangeEnd: "2026-03-31",
+        metrics: {
+          revenue: 2800,
+          appointmentsCount: 11,
+          activeCustomers: 9,
+          conversionRate: 36,
+        },
+        previousMetrics: {
+          revenue: 1900,
+          appointmentsCount: 8,
+          activeCustomers: 7,
+          conversionRate: 25,
+        },
+        appointments: [],
+        sales: [],
+        trend: [],
+      },
+      error: null,
+    });
+
+    getSupabaseBrowserClientMock.mockReturnValue({
+      rpc: rpcMock,
+    });
+
+    const snapshot = await getReportSnapshot("biz_1", {
+      rangeKey: "custom",
+      customStart: "2026-04-01",
+      customEnd: "2026-04-15",
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith("get_workspace_report_snapshot", {
+      target_business_id: "biz_1",
+      range_days: 15,
+      start_date: "2026-04-01",
+      end_date: "2026-04-15",
+    });
+    expect(snapshot.rangeKey).toBe("custom");
+    expect(snapshot.rangeDays).toBe(15);
+    expect(snapshot.rangeLabel).toContain("Personalizado");
   });
 
   it("falls back to service aggregation when the report RPC is missing", async () => {
@@ -125,5 +183,7 @@ describe("report service", () => {
     expect(snapshot.metrics.activeCustomers).toBe(1);
     expect(snapshot.metrics.conversionRate).toBe(100);
     expect(snapshot.rangeKey).toBe("7d");
+    expect(snapshot.comparison.previousMetrics.revenue).toBe(0);
+    expect(snapshot.comparison.metricChanges.revenue.delta).toBe(350);
   });
 });

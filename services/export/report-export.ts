@@ -96,13 +96,40 @@ export function buildReportSnapshotCsv(snapshot: ReportSnapshot, businessName: s
       extra: snapshot.rangeKey,
       date: generatedAt,
     },
+    {
+      section: "meta",
+      label: "previous_range_start",
+      value: snapshot.comparison.previousRangeStart,
+      detail: snapshot.comparison.previousRangeEnd,
+      extra: "previous_period",
+      date: generatedAt,
+    },
     { section: "metric", label: "revenue", value: snapshot.metrics.revenue, detail: "", extra: "", date: generatedAt },
+    {
+      section: "metric_previous",
+      label: "revenue",
+      value: snapshot.comparison.previousMetrics.revenue,
+      detail: String(snapshot.comparison.metricChanges.revenue.delta),
+      extra: snapshot.comparison.metricChanges.revenue.deltaPercent === null ? "" : `${snapshot.comparison.metricChanges.revenue.deltaPercent}%`,
+      date: generatedAt,
+    },
     {
       section: "metric",
       label: "appointments_count",
       value: snapshot.metrics.appointmentsCount,
       detail: "",
       extra: "",
+      date: generatedAt,
+    },
+    {
+      section: "metric_previous",
+      label: "appointments_count",
+      value: snapshot.comparison.previousMetrics.appointmentsCount,
+      detail: String(snapshot.comparison.metricChanges.appointmentsCount.delta),
+      extra:
+        snapshot.comparison.metricChanges.appointmentsCount.deltaPercent === null
+          ? ""
+          : `${snapshot.comparison.metricChanges.appointmentsCount.deltaPercent}%`,
       date: generatedAt,
     },
     {
@@ -114,11 +141,33 @@ export function buildReportSnapshotCsv(snapshot: ReportSnapshot, businessName: s
       date: generatedAt,
     },
     {
+      section: "metric_previous",
+      label: "active_customers",
+      value: snapshot.comparison.previousMetrics.activeCustomers,
+      detail: String(snapshot.comparison.metricChanges.activeCustomers.delta),
+      extra:
+        snapshot.comparison.metricChanges.activeCustomers.deltaPercent === null
+          ? ""
+          : `${snapshot.comparison.metricChanges.activeCustomers.deltaPercent}%`,
+      date: generatedAt,
+    },
+    {
       section: "metric",
       label: "conversion_rate",
       value: snapshot.metrics.conversionRate,
       detail: "",
       extra: "",
+      date: generatedAt,
+    },
+    {
+      section: "metric_previous",
+      label: "conversion_rate",
+      value: snapshot.comparison.previousMetrics.conversionRate,
+      detail: String(snapshot.comparison.metricChanges.conversionRate.delta),
+      extra:
+        snapshot.comparison.metricChanges.conversionRate.deltaPercent === null
+          ? ""
+          : `${snapshot.comparison.metricChanges.conversionRate.deltaPercent}%`,
       date: generatedAt,
     },
     ...snapshot.trend.map((item) => ({

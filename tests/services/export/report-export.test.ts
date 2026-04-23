@@ -67,6 +67,22 @@ describe("report export", () => {
           activeCustomers: 12,
           conversionRate: 44,
         },
+        comparison: {
+          previousRangeStart: "2026-02-24T00:00:00.000Z",
+          previousRangeEnd: "2026-03-24T23:59:59.999Z",
+          previousMetrics: {
+            revenue: 4100,
+            appointmentsCount: 12,
+            activeCustomers: 10,
+            conversionRate: 33,
+          },
+          metricChanges: {
+            revenue: { current: 6200, previous: 4100, delta: 2100, deltaPercent: 51.2, direction: "up" },
+            appointmentsCount: { current: 18, previous: 12, delta: 6, deltaPercent: 50, direction: "up" },
+            activeCustomers: { current: 12, previous: 10, delta: 2, deltaPercent: 20, direction: "up" },
+            conversionRate: { current: 44, previous: 33, delta: 11, deltaPercent: 33.3, direction: "up" },
+          },
+        },
         trend: [{ date: "2026-04-23T00:00:00.000Z", label: "jue", revenue: 1200 }],
         appointments: [],
         sales: [],
@@ -76,7 +92,9 @@ describe("report export", () => {
     );
 
     expect(csv).toContain("meta,range_start,2026-03-25T00:00:00.000Z,2026-04-23T23:59:59.999Z,30d");
+    expect(csv).toContain("meta,previous_range_start,2026-02-24T00:00:00.000Z,2026-03-24T23:59:59.999Z,previous_period");
     expect(csv).toContain("metric,appointments_count,18");
+    expect(csv).toContain("metric_previous,revenue,4100,2100,51.2%");
     expect(csv).toContain("trend,jue,1200,2026-04-23T00:00:00.000Z");
   });
 });

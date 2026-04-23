@@ -79,6 +79,8 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 - los roles personalizados ya normalizan permisos minimos de lectura cuando se asignan permisos de escritura o gestion
 - appointments y sales ya tienen RPC dedicadas para opciones, listados y creacion cuando la operacion necesita datos de otros modulos
 - dashboard y reportes ya pueden apoyarse en un snapshot consolidado por RPC para no depender de permisos operativos dispersos
+- reportes ya soportan comparativas contra el periodo anterior equivalente en snapshot, UI y exportacion CSV
+- reportes ya aceptan rangos personalizados manteniendo el patron de snapshot/RPC y fallback seguro
 - el siguiente salto natural es revisar si otros modulos necesitan el mismo patron y endurecer mas RPC sensibles de negocio
 
 #### Trabajo concreto recomendado
@@ -354,8 +356,8 @@ Falta:
 
 Falta:
 
-- filtros personalizados por rango de fechas
-- comparativas
+- filtros personalizados mas ricos por rango de fechas y por seccion
+- comparativas mas ricas por modulo y por dimension
 - exportacion CSV enriquecida por rango y por seccion
 - eventualmente PDF
 - metricas por modulo

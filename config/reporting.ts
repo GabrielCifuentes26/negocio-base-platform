@@ -1,7 +1,9 @@
 import type { ReportRangeKey } from "@/types/report";
 
+export type ReportPresetRangeKey = Exclude<ReportRangeKey, "custom">;
+
 export type ReportRangePreset = {
-  key: ReportRangeKey;
+  key: ReportPresetRangeKey;
   label: string;
   days: number;
   description: string;
@@ -28,6 +30,12 @@ export const reportRangePresets: ReportRangePreset[] = [
   },
 ];
 
+export const customReportRangeOption = {
+  key: "custom",
+  label: "Personalizado",
+  description: "Elige un rango propio para comparar contra el periodo anterior equivalente.",
+} as const;
+
 export function getReportRangePreset(rangeKey: ReportRangeKey) {
-  return reportRangePresets.find((preset) => preset.key === rangeKey) ?? reportRangePresets[0];
+  return reportRangePresets.find((preset) => preset.key === rangeKey) ?? reportRangePresets[1];
 }

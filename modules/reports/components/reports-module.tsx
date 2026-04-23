@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, CalendarRange, Coins, Users } from "lucide-react";
+import { subDays } from "date-fns";
+import { ArrowDownRight, ArrowUpRight, BarChart3, CalendarRange, Coins, Minus, Users } from "lucide-react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { businessConfig } from "@/config/business";
-import { reportRangePresets } from "@/config/reporting";
+import { customReportRangeOption, reportRangePresets } from "@/config/reporting";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 import { useReportSnapshot } from "@/modules/reports/lib/use-report-snapshot";
@@ -16,14 +17,94 @@ import { PageShell } from "@/components/shared/page-shell";
 import { EmptyState } from "@/components/states/empty-state";
 import { ModuleLoader } from "@/components/states/module-loader";
 import { Button } from "@/components/ui/button";
-import type { ReportRangeKey } from "@/types/report";
+import { Input } from "@/components/ui/input";
+import type { ReportRangeKey, ReportRangeSelection } from "@/types/report";
+
+function toDateInputValue(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function ComparisonIndicator({
+  delta,
+  suffix = "",
+}: {
+  delta: number | null;
+  suffix?: string;
+}) {
+  if (delta === null) {
+    return <p className="mt-2 text-sm text-muted-foreground">Sin base previa comparable</p>;
+  }
+
+  if (delta > 0) {
+    return (
+      <p className="mt-2 inline-flex items-center gap-1 text-sm text-emerald-600">
+        <ArrowUpRight className="size-4" />
+        +{delta}
+        {suffix} vs periodo anterior
+      </p>
+    );
+  }
+
+  if (delta < 0) {
+    return (
+      <p className="mt-2 inline-flex items-center gap-1 text-sm text-rose-600">
+        <ArrowDownRight className="size-4" />
+        {delta}
+        {suffix} vs periodo anterior
+      </p>
+    );
+  }
+
+  return (
+    <p className="mt-2 inline-flex items-center gap-1 text-sm text-muted-foreground">
+      <Minus className="size-4" />
+      Sin cambio vs periodo anterior
+    </p>
+  );
+}
 
 export function ReportsModule() {
   const { workspace } = useAuth();
   const business = workspace?.business ?? businessConfig;
-  const [rangeKey, setRangeKey] = useState<ReportRangeKey>("30d");
-  const { snapshot, loading } = useReportSnapshot(rangeKey);
+  const [pickerMode, setPickerMode] = useState<ReportRangeKey>("30d");
+  const [selection, setSelection] = useState<ReportRangeSelection>({ rangeKey: "30d" });
+  const [customStart, setCustomStart] = useState(() => toDateInputValue(subDays(new Date(), 29)));
+  const [customEnd, setCustomEnd] = useState(() => toDateInputValue(new Date()));
+  const { snapshot, loading } = useReportSnapshot(selection);
   const [exporting, setExporting] = useState(false);
+  const customDatesInvalid = !customStart || !customEnd || customStart > customEnd;
+  const customRangeDirty =
+    pickerMode === "custom" &&
+    (selection.rangeKey !== "custom" ||
+      selection.customStart !== customStart ||
+      selection.customEnd !== customEnd);
+
+  function handlePresetSelect(nextRangeKey: Exclude<ReportRangeKey, "custom">) {
+    setPickerMode(nextRangeKey);
+    setSelection({ rangeKey: nextRangeKey });
+  }
+
+  function handleCustomMode() {
+    setPickerMode("custom");
+
+    if (selection.rangeKey === "custom") {
+      setCustomStart(selection.customStart ?? customStart);
+      setCustomEnd(selection.customEnd ?? customEnd);
+    }
+  }
+
+  function applyCustomRange() {
+    if (customDatesInvalid) {
+      toast.error("El rango personalizado necesita una fecha inicial menor o igual a la final.");
+      return;
+    }
+
+    setSelection({
+      rangeKey: "custom",
+      customStart,
+      customEnd,
+    });
+  }
 
   function handleExport() {
     setExporting(true);
@@ -51,14 +132,22 @@ export function ReportsModule() {
           {reportRangePresets.map((preset) => (
             <Button
               key={preset.key}
-              variant={preset.key === rangeKey ? "default" : "outline"}
+              variant={pickerMode === preset.key ? "default" : "outline"}
               size="sm"
               className="rounded-full px-4"
-              onClick={() => setRangeKey(preset.key)}
+              onClick={() => handlePresetSelect(preset.key)}
             >
               {preset.label}
             </Button>
           ))}
+          <Button
+            variant={pickerMode === "custom" ? "default" : "outline"}
+            size="sm"
+            className="rounded-full px-4"
+            onClick={handleCustomMode}
+          >
+            {customReportRangeOption.label}
+          </Button>
           <Button variant="outline" className="rounded-full px-5" onClick={handleExport} disabled={exporting}>
             <Download />
             {exporting ? "Exportando..." : "Exportar CSV"}
@@ -66,6 +155,32 @@ export function ReportsModule() {
         </div>
       }
     >
+      {pickerMode === "custom" ? (
+        <ModuleCard
+          title="Rango personalizado"
+          description="Define el rango que quieres analizar. La comparacion usara el periodo anterior con la misma duracion."
+        >
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <label className="space-y-2 text-sm">
+              <span className="font-medium text-foreground">Fecha inicial</span>
+              <Input type="date" value={customStart} onChange={(event) => setCustomStart(event.target.value)} />
+            </label>
+            <label className="space-y-2 text-sm">
+              <span className="font-medium text-foreground">Fecha final</span>
+              <Input type="date" value={customEnd} onChange={(event) => setCustomEnd(event.target.value)} />
+            </label>
+            <Button className="rounded-full px-5" onClick={applyCustomRange} disabled={!customRangeDirty || customDatesInvalid}>
+              Aplicar rango
+            </Button>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {customRangeDirty
+              ? "Aplica las fechas para refrescar el snapshot y la exportacion."
+              : "El rango activo ya esta sincronizado con el snapshot actual."}
+          </p>
+        </ModuleCard>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ModuleCard
           title="Ingresos"
@@ -74,7 +189,7 @@ export function ReportsModule() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-3xl font-semibold">{formatCurrency(snapshot.metrics.revenue)}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Fuente: {snapshot.mode}</p>
+              <ComparisonIndicator delta={snapshot.comparison.metricChanges.revenue.deltaPercent} suffix="%" />
             </div>
             <Coins className="size-5 text-primary" />
           </div>
@@ -86,6 +201,7 @@ export function ReportsModule() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Del {formatDate(snapshot.rangeStart)} al {formatDate(snapshot.rangeEnd)}
               </p>
+              <ComparisonIndicator delta={snapshot.comparison.metricChanges.activeCustomers.deltaPercent} suffix="%" />
             </div>
             <Users className="size-5 text-primary" />
           </div>
@@ -95,6 +211,7 @@ export function ReportsModule() {
             <div>
               <p className="text-3xl font-semibold">{snapshot.metrics.appointmentsCount}</p>
               <p className="mt-2 text-sm text-muted-foreground">Reservas entre las fechas seleccionadas</p>
+              <ComparisonIndicator delta={snapshot.comparison.metricChanges.appointmentsCount.deltaPercent} suffix="%" />
             </div>
             <CalendarRange className="size-5 text-primary" />
           </div>
@@ -104,6 +221,7 @@ export function ReportsModule() {
             <div>
               <p className="text-3xl font-semibold">{snapshot.metrics.conversionRate}%</p>
               <p className="mt-2 text-sm text-muted-foreground">Indicador comercial base</p>
+              <ComparisonIndicator delta={snapshot.comparison.metricChanges.conversionRate.delta} suffix=" pts" />
             </div>
             <BarChart3 className="size-5 text-primary" />
           </div>
@@ -140,6 +258,9 @@ export function ReportsModule() {
                 <p className="text-sm font-medium">Periodo analizado</p>
                 <p className="mt-1 text-base font-semibold">
                   {formatDate(snapshot.rangeStart)} - {formatDate(snapshot.rangeEnd)}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Comparado con {formatDate(snapshot.comparison.previousRangeStart)} - {formatDate(snapshot.comparison.previousRangeEnd)}
                 </p>
               </div>
             </div>

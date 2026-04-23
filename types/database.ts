@@ -658,6 +658,8 @@ export type Database = {
         Args: {
           target_business_id: string;
           range_days?: number | null;
+          start_date?: string | null;
+          end_date?: string | null;
         };
         Returns: Json;
       };
