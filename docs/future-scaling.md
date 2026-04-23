@@ -57,6 +57,9 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 - hay permisos y editor de permisos por rol
 - existe estructura inicial de RLS
 - el frontend ya filtra modulos y acciones sensibles
+- ya existe un catalogo base de permisos por accion
+- la UI administrativa ya diferencia lectura versus edicion en users, roles, settings y branding
+- existe helper SQL para validar permisos por negocio en capas administrativas
 
 #### Lo que falta
 
@@ -65,6 +68,12 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 - asegurar que las RPC usadas por onboarding, invitaciones o preferencias respeten membresia y rol
 - endurecer permisos especiales para editar branding, roles, usuarios y configuracion critica
 - revisar que ningun servicio cliente pueda escribir campos que deberian ser de sistema
+
+#### Lo que ya se avanzo en este frente
+
+- existe compatibilidad temporal con claves legacy para no romper instalaciones anteriores de golpe
+- branding, settings, roles, role_permissions, memberships e invitaciones ya tienen una capa administrativa mas fina
+- el siguiente salto natural es llevar esa granularidad a CRUD operativos y a RPC sensibles
 
 #### Trabajo concreto recomendado
 

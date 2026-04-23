@@ -122,6 +122,13 @@ Puntos fuertes ya cerrados:
 - pruebas unitarias base con Vitest
 - pruebas nuevas para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
 
+7. Seguridad y permisos
+
+- catalogo central de permisos por accion en `lib/permissions/catalog.ts`
+- compatibilidad temporal con permisos legacy como `manage_users`, `manage_roles` y `manage_settings`
+- UI sensible alineada a lectura versus edicion en users, roles, settings y branding
+- migracion nueva para permisos por accion y endurecimiento de RLS administrativa
+
 ## Migraciones importantes
 
 Orden actual de migraciones:
@@ -135,6 +142,7 @@ Orden actual de migraciones:
 - `007_brand_assets_storage.sql`
 - `008_business_onboarding_bootstrap.sql`
 - `009_profile_preferred_business.sql`
+- `010_action_permissions_and_admin_rls.sql`
 
 Resumen de las ultimas:
 
@@ -142,6 +150,7 @@ Resumen de las ultimas:
 - `007`: Storage para branding
 - `008`: bootstrap del primer negocio
 - `009`: negocio preferido persistido en perfil
+- `010`: permisos por accion, helper SQL de permisos y RLS administrativa mas fina para branding, settings, roles, memberships e invitaciones
 
 ## Variables de entorno actuales
 
@@ -164,11 +173,16 @@ Variables:
 - `modules/onboarding/components/onboarding-wizard.tsx`
 - `modules/auth/components/auth-guard.tsx`
 - `modules/auth/components/accept-invitation-card.tsx`
+- `lib/permissions/catalog.ts`
+- `lib/permissions/ability.ts`
 - `modules/roles/components/role-permissions-editor.tsx`
 - `components/layout/workspace-switcher.tsx`
+- `components/forms/business-settings-form.tsx`
+- `components/forms/business-modules-form.tsx`
 - `components/forms/branding-settings-form.tsx`
 - `database/migrations/008_business_onboarding_bootstrap.sql`
 - `database/migrations/009_profile_preferred_business.sql`
+- `database/migrations/010_action_permissions_and_admin_rls.sql`
 - `supabase/functions/send-business-invitation/index.ts`
 
 ## Validacion actual
@@ -194,6 +208,7 @@ Quedo cubierta una parte importante de los flujos criticos:
 Archivos nuevos de pruebas:
 
 - `tests/lib/auth/workspace-preferences.test.ts`
+- `tests/lib/permissions/ability.test.ts`
 - `tests/services/api/onboarding-service.test.ts`
 - `tests/services/api/invitation-service.test.ts`
 - `tests/services/api/workspace-service.test.ts`
@@ -221,7 +236,7 @@ Prioridad sugerida para la proxima sesion:
    siguiente bloque sugerido: `auth-context`, guards de autenticacion y componentes criticos de onboarding o workspace
 
 2. endurecer seguridad
-   mover permisos de una logica por modulo a una mas fina por accion y revisar RLS
+   siguiente bloque sugerido: extender la logica granular a CRUD operativos (`customers`, `services`, `products`, `appointments`, `sales`) y revisar RPC sensibles
 
 3. mejorar onboarding
    agregar horarios iniciales, servicios base sugeridos y presets por industria

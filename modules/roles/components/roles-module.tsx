@@ -2,6 +2,7 @@
 
 import { KeyRound, ShieldCheck } from "lucide-react";
 
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { DataTable } from "@/components/shared/data-table";
 import { ModuleCard } from "@/components/shared/module-card";
 import { PageShell } from "@/components/shared/page-shell";
@@ -13,6 +14,8 @@ import { useRoles } from "@/modules/roles/lib/use-roles";
 
 export function RolesModule() {
   const { rows, permissions, mode, loading, error, addRole, saveRolePermissions } = useRoles();
+  const { can } = usePermissionAccess();
+  const canManageRoles = can("roles.manage");
 
   if (loading) {
     return <ModuleLoader />;
@@ -22,7 +25,7 @@ export function RolesModule() {
     <PageShell
       title="Roles y permisos"
       description="Modelo base para seguridad, RLS y reglas de acceso por tipo de usuario."
-      action={<CreateRoleDialog permissions={permissions} onCreate={addRole} />}
+      action={canManageRoles ? <CreateRoleDialog permissions={permissions} onCreate={addRole} /> : undefined}
     >
       <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
         <ModuleCard
@@ -41,11 +44,11 @@ export function RolesModule() {
                   key: "actions",
                   label: "Gestion",
                   render: (row) => (
-                    <RolePermissionsEditor
-                      role={row}
-                      permissions={permissions}
-                      onSave={saveRolePermissions}
-                    />
+                    canManageRoles ? (
+                      <RolePermissionsEditor role={row} permissions={permissions} onSave={saveRolePermissions} />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">{row.isSystem ? "Sistema" : "Solo lectura"}</span>
+                    )
                   ),
                 },
               ]}

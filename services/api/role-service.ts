@@ -1,6 +1,8 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isLegacyPermissionKey } from "@/lib/permissions/catalog";
 import { demoPermissions, demoRoles } from "@/services/api/demo-data";
+import type { PermissionKey } from "@/types/auth";
 import type { CreateRoleInput, PermissionListItem, RoleListItem } from "@/types/role";
 import type { Database } from "@/types/database";
 
@@ -61,11 +63,11 @@ export async function listPermissions() {
     mode: "supabase" as const,
     rows: ((data ?? []) as PermissionRow[]).map((permission) => ({
       id: permission.id,
-      key: permission.key,
+      key: permission.key as PermissionKey,
       moduleKey: permission.module_key,
       action: permission.action,
       description: permission.description,
-    })),
+    })).filter((permission) => !isLegacyPermissionKey(permission.key)),
     error: null,
   };
 }
@@ -148,14 +150,13 @@ export async function listRoles(businessId?: string | null) {
   }
 
   for (const item of rolePermissionRows) {
-    permissionUsage.set(item.role_id, (permissionUsage.get(item.role_id) ?? 0) + 1);
-
     const permissionKey = permissionKeyById.get(item.permission_id);
 
     if (!permissionKey) {
       continue;
     }
 
+    permissionUsage.set(item.role_id, (permissionUsage.get(item.role_id) ?? 0) + 1);
     permissionKeysByRoleId.set(item.role_id, [...(permissionKeysByRoleId.get(item.role_id) ?? []), permissionKey]);
   }
 
@@ -168,7 +169,7 @@ export async function listRoles(businessId?: string | null) {
       scope: role.description ?? role.key,
       users: roleUsage.get(role.id) ?? 0,
       permissionsCount: permissionUsage.get(role.id) ?? 0,
-      permissionKeys: permissionKeysByRoleId.get(role.id) ?? [],
+      permissionKeys: (permissionKeysByRoleId.get(role.id) ?? []) as PermissionKey[],
       isSystem: role.is_system,
       source: "supabase" as const,
     })),

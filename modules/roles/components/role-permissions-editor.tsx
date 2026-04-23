@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import type { PermissionKey } from "@/types/auth";
 import type { PermissionListItem, RoleListItem } from "@/types/role";
 
 function groupPermissionsByModule(permissions: PermissionListItem[]) {
@@ -22,15 +23,15 @@ export function RolePermissionsEditor({
 }: {
   role: RoleListItem;
   permissions: PermissionListItem[];
-  onSave: (roleId: string, permissionKeys: string[]) => Promise<{ error: string | null }>;
+  onSave: (roleId: string, permissionKeys: PermissionKey[]) => Promise<{ error: string | null }>;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>(role.permissionKeys);
+  const [selectedKeys, setSelectedKeys] = useState<PermissionKey[]>(role.permissionKeys);
   const [saving, setSaving] = useState(false);
 
   const groupedPermissions = useMemo(() => groupPermissionsByModule(permissions), [permissions]);
 
-  function togglePermission(permissionKey: string) {
+  function togglePermission(permissionKey: PermissionKey) {
     setSelectedKeys((current) =>
       current.includes(permissionKey)
         ? current.filter((item) => item !== permissionKey)

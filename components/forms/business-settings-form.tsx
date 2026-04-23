@@ -25,7 +25,7 @@ const businessSettingsSchema = z.object({
 
 type BusinessSettingsValues = z.infer<typeof businessSettingsSchema>;
 
-export function BusinessSettingsForm() {
+export function BusinessSettingsForm({ readOnly = false }: { readOnly?: boolean }) {
   const { workspace, refreshWorkspace, supabaseEnabled } = useAuth();
   const business = workspace?.business ?? businessConfig;
 
@@ -81,26 +81,31 @@ export function BusinessSettingsForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-2 text-sm">
               <span className="font-medium">Nombre comercial</span>
-              <Input {...form.register("name")} />
+              <Input {...form.register("name")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Correo</span>
-              <Input {...form.register("email")} />
+              <Input {...form.register("email")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Telefono</span>
-              <Input {...form.register("phone")} />
+              <Input {...form.register("phone")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Direccion</span>
-              <Input {...form.register("address")} />
+              <Input {...form.register("address")} disabled={readOnly} />
             </label>
           </div>
           <label className="space-y-2 text-sm">
             <span className="font-medium">Mensaje de bienvenida</span>
-            <Textarea rows={4} {...form.register("welcomeMessage")} />
+            <Textarea rows={4} {...form.register("welcomeMessage")} disabled={readOnly} />
           </label>
-          <Button className="rounded-full px-5" type="submit" disabled={form.formState.isSubmitting}>
+          {readOnly ? (
+            <p className="text-sm text-muted-foreground">
+              Tu rol actual puede ver la configuracion, pero no modificarla.
+            </p>
+          ) : null}
+          <Button className="rounded-full px-5" type="submit" disabled={readOnly || form.formState.isSubmitting}>
             {form.formState.isSubmitting ? "Guardando..." : "Guardar cambios"}
           </Button>
         </form>

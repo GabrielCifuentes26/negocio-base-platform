@@ -10,7 +10,7 @@ import { updateWorkspaceModules } from "@/services/api/workspace-service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function BusinessModulesForm() {
+export function BusinessModulesForm({ readOnly = false }: { readOnly?: boolean }) {
   const { workspace, refreshWorkspace, supabaseEnabled } = useAuth();
   const baseModules = useMemo(
     () => workspace?.business.modules ?? platformModules.map((module) => module.key),
@@ -75,6 +75,7 @@ export function BusinessModulesForm() {
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleModule(module.key)}
+                  disabled={readOnly}
                   className="mt-1 size-4 rounded border-border"
                 />
                 <span>
@@ -85,7 +86,12 @@ export function BusinessModulesForm() {
             );
           })}
         </div>
-        <Button className="rounded-full px-5" onClick={() => void handleSave()} disabled={submitting}>
+        {readOnly ? (
+          <p className="text-sm text-muted-foreground">
+            Tu rol actual puede ver los modulos activos, pero no modificarlos.
+          </p>
+        ) : null}
+        <Button className="rounded-full px-5" onClick={() => void handleSave()} disabled={readOnly || submitting}>
           {submitting ? "Guardando..." : "Guardar modulos"}
         </Button>
       </CardContent>

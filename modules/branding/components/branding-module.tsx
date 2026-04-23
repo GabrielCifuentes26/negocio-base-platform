@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import { businessConfig } from "@/config/business";
+import { usePermissionAccess } from "@/hooks/use-permission-access";
 import { useAuth } from "@/hooks/use-auth";
 import { BrandingSettingsForm } from "@/components/forms/branding-settings-form";
 import { ModuleCard } from "@/components/shared/module-card";
@@ -10,7 +11,9 @@ import { PageShell } from "@/components/shared/page-shell";
 
 export function BrandingModule() {
   const { workspace } = useAuth();
+  const { can } = usePermissionAccess();
   const business = workspace?.business ?? businessConfig;
+  const canEditBranding = can("branding.update");
 
   return (
     <PageShell
@@ -19,7 +22,7 @@ export function BrandingModule() {
     >
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
-          <BrandingSettingsForm />
+          <BrandingSettingsForm readOnly={!canEditBranding} />
           <ModuleCard title="Tokens activos" description="Colores, tipografia e imagen sin valores de negocio embebidos en la UI.">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-3xl border bg-white p-4">

@@ -1,3 +1,7 @@
+import { getPermissionsByRole } from "@/lib/permissions/ability";
+import { visiblePermissionCatalog } from "@/lib/permissions/catalog";
+import type { UserRoleKey } from "@/types/auth";
+
 export const demoCustomers = [
   { id: "cus_01", name: "Ana Lopez", phone: "+502 4111-2233", visits: 8, lastVisit: "2026-04-19" },
   { id: "cus_02", name: "Carlos Mendez", phone: "+502 4222-3344", visits: 5, lastVisit: "2026-04-21" },
@@ -34,15 +38,19 @@ export const demoUsers = [
   { id: "usr_03", name: "Sofia Garcia", role: "staff", email: "sofia@negocio.com", status: "Activo" },
 ];
 
-export const demoRoles = [
+const demoRoleDefinitions: Array<{
+  id: string;
+  key: UserRoleKey;
+  name: string;
+  scope: string;
+  users: number;
+}> = [
   {
     id: "role_owner",
     key: "owner",
     name: "Owner",
     scope: "Acceso total",
     users: 1,
-    permissionsCount: 6,
-    permissionKeys: ["manage_all", "view_reports", "manage_branding", "manage_settings", "manage_users", "manage_roles"],
   },
   {
     id: "role_admin",
@@ -50,8 +58,6 @@ export const demoRoles = [
     name: "Admin",
     scope: "Operacion y configuracion",
     users: 1,
-    permissionsCount: 5,
-    permissionKeys: ["view_reports", "manage_branding", "manage_settings", "manage_users", "manage_roles"],
   },
   {
     id: "role_manager",
@@ -59,8 +65,6 @@ export const demoRoles = [
     name: "Manager",
     scope: "Operacion diaria y reportes",
     users: 2,
-    permissionsCount: 1,
-    permissionKeys: ["view_reports"],
   },
   {
     id: "role_staff",
@@ -68,19 +72,32 @@ export const demoRoles = [
     name: "Staff",
     scope: "Agenda y atencion",
     users: 6,
-    permissionsCount: 0,
-    permissionKeys: [],
   },
 ];
 
-export const demoPermissions = [
-  { id: "perm_01", key: "manage_all", moduleKey: "core", action: "all", description: "Acceso total" },
-  { id: "perm_02", key: "view_reports", moduleKey: "reports", action: "read", description: "Ver reportes" },
-  { id: "perm_03", key: "manage_branding", moduleKey: "branding", action: "write", description: "Administrar branding" },
-  { id: "perm_04", key: "manage_settings", moduleKey: "settings", action: "write", description: "Administrar configuracion" },
-  { id: "perm_05", key: "manage_users", moduleKey: "users", action: "write", description: "Administrar usuarios" },
-  { id: "perm_06", key: "manage_roles", moduleKey: "roles", action: "write", description: "Administrar roles" },
+export const demoRoles = [
+  ...demoRoleDefinitions.map((role) => {
+    const permissionKeys = getPermissionsByRole(role.key);
+
+    return {
+      id: role.id,
+      key: role.key,
+      name: role.name,
+      scope: role.scope,
+      users: role.users,
+      permissionsCount: permissionKeys.length,
+      permissionKeys,
+    };
+  }),
 ];
+
+export const demoPermissions = visiblePermissionCatalog.map((permission, index) => ({
+  id: `perm_${String(index + 1).padStart(2, "0")}`,
+  key: permission.key,
+  moduleKey: permission.moduleKey,
+  action: permission.action,
+  description: permission.description,
+}));
 
 export const demoMetrics = {
   revenue: 18750,

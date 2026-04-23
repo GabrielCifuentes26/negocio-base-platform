@@ -16,7 +16,7 @@ import { useUsers } from "@/modules/users/lib/use-users";
 export function UsersModule() {
   const { rows, roles, mode, loading, error, changeRole } = useUsers();
   const { can } = usePermissionAccess();
-  const canManageUsers = can("manage_users");
+  const canManageUsers = can("users.manage");
 
   if (loading) {
     return <ModuleLoader />;

@@ -1,47 +1,38 @@
 import type { PermissionKey, UserRoleKey } from "@/types/auth";
 import type { ModuleKey } from "@/types/modules";
 
-const roleMatrix: Record<UserRoleKey, PermissionKey[]> = {
-  owner: [
-    "manage_all",
-    "view_reports",
-    "manage_branding",
-    "manage_settings",
-    "manage_users",
-    "manage_roles",
-  ],
-  admin: [
-    "view_reports",
-    "manage_branding",
-    "manage_settings",
-    "manage_users",
-    "manage_roles",
-  ],
-  manager: ["view_reports"],
-  staff: [],
-};
+import {
+  defaultRolePermissionMatrix,
+  moduleAccessRequirements,
+  permissionAliasMap,
+} from "@/lib/permissions/catalog";
 
-const modulePermissionMap: Partial<Record<ModuleKey, PermissionKey>> = {
-  reports: "view_reports",
-  branding: "manage_branding",
-  settings: "manage_settings",
-  users: "manage_users",
-  roles: "manage_roles",
-};
+function getEquivalentPermissions(permission: PermissionKey) {
+  const directAliases = permissionAliasMap[permission] ?? [];
+  const reverseAliases = Object.entries(permissionAliasMap)
+    .filter(([, aliases]) => aliases?.includes(permission))
+    .map(([key]) => key as PermissionKey);
+
+  return [permission, ...directAliases, ...reverseAliases];
+}
 
 export function getPermissionsByRole(role: UserRoleKey): PermissionKey[] {
-  return roleMatrix[role];
+  return defaultRolePermissionMatrix[role];
 }
 
 export function hasPermission(role: UserRoleKey, permission: PermissionKey) {
-  return roleMatrix[role].includes("manage_all") || roleMatrix[role].includes(permission);
+  return hasPermissionInSet(defaultRolePermissionMatrix[role], permission);
 }
 
 export function hasPermissionInSet(permissions: PermissionKey[], permission: PermissionKey) {
-  return permissions.includes("manage_all") || permissions.includes(permission);
+  if (permissions.includes("manage_all")) {
+    return true;
+  }
+
+  return getEquivalentPermissions(permission).some((candidate) => permissions.includes(candidate));
 }
 
 export function canAccessModuleByPermission(moduleKey: ModuleKey, permissions: PermissionKey[]) {
-  const requiredPermission = modulePermissionMap[moduleKey];
-  return requiredPermission ? hasPermissionInSet(permissions, requiredPermission) : true;
+  const requiredPermissions = moduleAccessRequirements[moduleKey];
+  return requiredPermissions ? requiredPermissions.some((permission) => hasPermissionInSet(permissions, permission)) : true;
 }

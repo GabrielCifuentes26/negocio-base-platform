@@ -10,6 +10,7 @@ import { EntityDialog } from "@/components/shared/entity-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { PermissionKey } from "@/types/auth";
 import type { CreateRoleInput, PermissionListItem } from "@/types/role";
 
 const roleSchema = z.object({
@@ -55,7 +56,10 @@ export function CreateRoleDialog({
   }
 
   async function onSubmit(values: RoleFormValues) {
-    const result = await onCreate(values);
+    const result = await onCreate({
+      ...values,
+      permissionKeys: values.permissionKeys as PermissionKey[],
+    });
 
     if (result.error) {
       toast.error(result.error);

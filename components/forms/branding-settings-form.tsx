@@ -29,7 +29,7 @@ const brandingSchema = z.object({
 
 type BrandingFormValues = z.infer<typeof brandingSchema>;
 
-export function BrandingSettingsForm() {
+export function BrandingSettingsForm({ readOnly = false }: { readOnly?: boolean }) {
   const { workspace, refreshWorkspace, supabaseEnabled } = useAuth();
   const business = workspace?.business ?? businessConfig;
   const [uploadingAsset, setUploadingAsset] = useState<BrandAssetType | null>(null);
@@ -152,46 +152,56 @@ export function BrandingSettingsForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-2 text-sm">
               <span className="font-medium">Color primario</span>
-              <Input {...form.register("primaryColor")} />
+              <Input {...form.register("primaryColor")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Color texto primario</span>
-              <Input {...form.register("primaryForegroundColor")} />
+              <Input {...form.register("primaryForegroundColor")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Color acento</span>
-              <Input {...form.register("accentColor")} />
+              <Input {...form.register("accentColor")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Color texto acento</span>
-              <Input {...form.register("accentForegroundColor")} />
+              <Input {...form.register("accentForegroundColor")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Color sidebar</span>
-              <Input {...form.register("sidebarColor")} />
+              <Input {...form.register("sidebarColor")} disabled={readOnly} />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Tipografia</span>
-              <Input {...form.register("fontFamily")} />
+              <Input {...form.register("fontFamily")} disabled={readOnly} />
             </label>
           </div>
           <label className="space-y-2 text-sm">
             <span className="font-medium">URL logo</span>
-            <Input {...form.register("logoUrl")} />
+            <Input {...form.register("logoUrl")} disabled={readOnly} />
           </label>
           <label className="space-y-2 text-sm">
             <span className="font-medium">URL imagen hero</span>
-            <Input {...form.register("heroImageUrl")} />
+            <Input {...form.register("heroImageUrl")} disabled={readOnly} />
           </label>
 
           <div className="grid gap-4 rounded-3xl border border-dashed border-border/80 bg-muted/20 p-4 sm:grid-cols-2">
             <label className="space-y-2 text-sm">
               <span className="font-medium">Subir logo</span>
-              <Input type="file" accept="image/*" onChange={(event) => void handleAssetUpload("logo", event)} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(event) => void handleAssetUpload("logo", event)}
+                disabled={readOnly}
+              />
             </label>
             <label className="space-y-2 text-sm">
               <span className="font-medium">Subir imagen principal</span>
-              <Input type="file" accept="image/*" onChange={(event) => void handleAssetUpload("hero", event)} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(event) => void handleAssetUpload("hero", event)}
+                disabled={readOnly}
+              />
             </label>
             <div className="sm:col-span-2 rounded-2xl bg-white/80 px-4 py-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2 font-medium text-foreground">
@@ -205,7 +215,16 @@ export function BrandingSettingsForm() {
             </div>
           </div>
 
-          <Button className="rounded-full px-5" type="submit" disabled={form.formState.isSubmitting || Boolean(uploadingAsset)}>
+          {readOnly ? (
+            <p className="text-sm text-muted-foreground">
+              Tu rol actual puede ver el branding, pero no editar ni subir assets.
+            </p>
+          ) : null}
+          <Button
+            className="rounded-full px-5"
+            type="submit"
+            disabled={readOnly || form.formState.isSubmitting || Boolean(uploadingAsset)}
+          >
             {form.formState.isSubmitting ? "Guardando..." : "Guardar branding"}
           </Button>
         </form>

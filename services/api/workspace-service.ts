@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 
+import { getPermissionsByRole } from "@/lib/permissions/ability";
 import { businessConfig } from "@/config/business";
 import { demoSession } from "@/lib/auth/session";
 import type { SupabaseBrowserClient } from "@/lib/supabase/client";
@@ -74,7 +75,7 @@ export function getDemoWorkspace(): ActiveWorkspace {
     },
     user: demoSession.user,
     business: businessConfig,
-    permissions: ["manage_all", "view_reports", "manage_branding", "manage_settings", "manage_users", "manage_roles"],
+    permissions: getPermissionsByRole("owner"),
   };
 }
 
