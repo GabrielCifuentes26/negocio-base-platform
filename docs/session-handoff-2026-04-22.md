@@ -1,5 +1,14 @@
 # Session Handoff 2026-04-22
 
+## Ultima actualizacion
+
+Actualizado al cierre de la sesion con:
+
+- repositorio publico en GitHub
+- GitHub Pages activo por workflow
+- deploy exitoso en la rama `main`
+- ultimo commit remoto: `179b376 fix: enable github pages during deploy`
+
 ## Objetivo del proyecto
 
 Construir una base reusable para pequenos negocios con:
@@ -30,6 +39,15 @@ Puntos fuertes ya cerrados:
 - editor de permisos por rol
 - CI con lint, typecheck, test y build
 - deploy a GitHub Pages
+
+## Estado del repositorio y despliegue
+
+- repositorio GitHub: `https://github.com/GabrielCifuentes26/negocio-base-platform`
+- visibilidad actual: `public`
+- rama principal: `main`
+- GitHub Pages publicado en: `https://gabrielcifuentes26.github.io/negocio-base-platform/`
+- ultimo workflow de CI: `success`
+- ultimo workflow de Pages: `success`
 
 ## Rutas principales
 
