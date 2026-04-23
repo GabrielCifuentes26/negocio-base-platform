@@ -7,7 +7,7 @@ Actualizado al cierre de la sesion con:
 - repositorio publico en GitHub
 - GitHub Pages activo por workflow
 - deploy exitoso en la rama `main`
-- ultimo commit remoto: `179b376 fix: enable github pages during deploy`
+- ultimo commit funcional de despliegue: `179b376 fix: enable github pages during deploy`
 
 ## Objetivo del proyecto
 
@@ -178,6 +178,21 @@ Ultima verificacion completada en verde:
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
+
+## Documento detallado de lo que falta
+
+Para continuar sin perder contexto ni omitir pasos, revisar tambien:
+
+- `docs/future-scaling.md`
+
+Ese documento ya no es un resumen corto. Incluye:
+
+- frentes pendientes
+- orden recomendado de construccion
+- riesgos si se saltan pasos
+- criterios de cierre
+- modulos que aun deben profundizarse
+- estrategia sugerida para seguridad, pruebas, onboarding, correo, reportes y escalado SaaS
 
 ## Siguiente paso recomendado
 
