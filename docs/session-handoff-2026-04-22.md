@@ -8,6 +8,7 @@ Actualizado al cierre de la sesion con:
 - GitHub Pages activo por workflow
 - deploy exitoso en la rama `main`
 - ultimo commit funcional de despliegue: `179b376 fix: enable github pages during deploy`
+- ultimo commit general del proyecto: `737c1ff feat: harden admin permissions and rls`
 
 ## Objetivo del proyecto
 
@@ -45,6 +46,7 @@ Puntos fuertes ya cerrados:
 - repositorio GitHub: `https://github.com/GabrielCifuentes26/negocio-base-platform`
 - visibilidad actual: `public`
 - rama principal: `main`
+- ultimo commit remoto actual: `737c1ff`
 - GitHub Pages publicado en: `https://gabrielcifuentes26.github.io/negocio-base-platform/`
 - ultimo workflow de CI: `success`
 - ultimo workflow de Pages: `success`
