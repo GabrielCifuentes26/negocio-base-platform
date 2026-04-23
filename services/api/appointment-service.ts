@@ -3,6 +3,7 @@ import { addMinutes, isSameDay } from "date-fns";
 import { formatTime, humanizeStatus } from "@/lib/format";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isMissingRpcError } from "@/lib/supabase/rpc";
 import { demoAppointments } from "@/services/api/demo-data";
 import { listCustomers } from "@/services/api/customer-service";
 import { listServices } from "@/services/api/service-service";
@@ -25,6 +26,27 @@ type ServiceLookupRow = Pick<
   "id" | "duration_minutes" | "price"
 >;
 
+type AppointmentRpcRow = {
+  id: string;
+  customer_name: string;
+  service_name: string;
+  employee_name: string;
+  starts_at: string;
+  status: string;
+};
+
+type RpcSelectOption = {
+  value: string;
+  label: string;
+  description?: string | null;
+};
+
+type AppointmentOptionsPayload = {
+  customers?: RpcSelectOption[];
+  services?: RpcSelectOption[];
+  employees?: RpcSelectOption[];
+} | null;
+
 function toDemoRows(): AppointmentListItem[] {
   return demoAppointments.map((appointment) => ({
     id: appointment.id,
@@ -38,7 +60,15 @@ function toDemoRows(): AppointmentListItem[] {
   }));
 }
 
-export async function listAppointmentOptions(businessId?: string | null): Promise<AppointmentFormOptions> {
+function normalizeOptions(items?: RpcSelectOption[] | null) {
+  return (items ?? []).map((item) => ({
+    value: item.value,
+    label: item.label,
+    description: item.description ?? undefined,
+  }));
+}
+
+async function listAppointmentOptionsViaTables(businessId?: string | null): Promise<AppointmentFormOptions> {
   const [customers, services, employees] = await Promise.all([
     listCustomers(businessId),
     listServices(businessId),
@@ -60,15 +90,7 @@ export async function listAppointmentOptions(businessId?: string | null): Promis
   };
 }
 
-export async function listAppointments(businessId?: string | null) {
-  if (!isSupabaseConfigured()) {
-    return { mode: "demo" as const, rows: toDemoRows(), error: null };
-  }
-
-  if (!businessId) {
-    return { mode: "supabase" as const, rows: [] as AppointmentListItem[], error: null };
-  }
-
+async function listAppointmentsViaTables(businessId: string) {
   const client = getSupabaseBrowserClient();
 
   if (!client) {
@@ -81,7 +103,7 @@ export async function listAppointments(businessId?: string | null) {
       .select("id, customer_id, assigned_membership_id, starts_at, status")
       .eq("business_id", businessId)
       .order("starts_at", { ascending: true }),
-    listAppointmentOptions(businessId),
+    listAppointmentOptionsViaTables(businessId),
   ]);
 
   if (error) {
@@ -121,14 +143,7 @@ export async function listAppointments(businessId?: string | null) {
   };
 }
 
-export async function createAppointment(
-  businessId: string | null | undefined,
-  input: CreateAppointmentInput,
-) {
-  if (!isSupabaseConfigured() || !businessId) {
-    return { error: null };
-  }
-
+async function createAppointmentViaTables(businessId: string, input: CreateAppointmentInput) {
   const client = getSupabaseBrowserClient();
 
   if (!client) {
@@ -173,6 +188,116 @@ export async function createAppointment(
     unit_price: selectedService.price,
     quantity: 1,
   });
+
+  return { error: error?.message ?? null };
+}
+
+export async function listAppointmentOptions(businessId?: string | null): Promise<AppointmentFormOptions> {
+  if (!isSupabaseConfigured() || !businessId) {
+    return listAppointmentOptionsViaTables(businessId);
+  }
+
+  const client = getSupabaseBrowserClient();
+
+  if (!client) {
+    return listAppointmentOptionsViaTables(businessId);
+  }
+
+  const { data, error } = await client.rpc("get_appointment_form_options", {
+    target_business_id: businessId,
+  });
+
+  if (isMissingRpcError(error)) {
+    return listAppointmentOptionsViaTables(businessId);
+  }
+
+  if (error) {
+    return {
+      customers: [],
+      services: [],
+      employees: [],
+    };
+  }
+
+  const payload = (data ?? null) as AppointmentOptionsPayload;
+
+  return {
+    customers: normalizeOptions(payload?.customers),
+    services: normalizeOptions(payload?.services),
+    employees: normalizeOptions(payload?.employees),
+  };
+}
+
+export async function listAppointments(businessId?: string | null) {
+  if (!isSupabaseConfigured()) {
+    return { mode: "demo" as const, rows: toDemoRows(), error: null };
+  }
+
+  if (!businessId) {
+    return { mode: "supabase" as const, rows: [] as AppointmentListItem[], error: null };
+  }
+
+  const client = getSupabaseBrowserClient();
+
+  if (!client) {
+    return { mode: "demo" as const, rows: toDemoRows(), error: null };
+  }
+
+  const { data, error } = await client.rpc("list_workspace_appointments", {
+    target_business_id: businessId,
+  });
+
+  if (isMissingRpcError(error)) {
+    return listAppointmentsViaTables(businessId);
+  }
+
+  if (error) {
+    return { mode: "supabase" as const, rows: [] as AppointmentListItem[], error: error.message };
+  }
+
+  return {
+    mode: "supabase" as const,
+    rows: ((data ?? []) as AppointmentRpcRow[]).map((appointment) => ({
+      id: appointment.id,
+      customer: appointment.customer_name ?? "Cliente",
+      service: appointment.service_name ?? "Sin servicio",
+      employee: appointment.employee_name ?? "Sin asignar",
+      time: formatTime(appointment.starts_at),
+      startsAt: appointment.starts_at,
+      status: humanizeStatus(appointment.status),
+      source: "supabase" as const,
+    })),
+    error: null,
+  };
+}
+
+export async function createAppointment(
+  businessId: string | null | undefined,
+  input: CreateAppointmentInput,
+) {
+  if (!isSupabaseConfigured() || !businessId) {
+    return { error: null };
+  }
+
+  const client = getSupabaseBrowserClient();
+
+  if (!client) {
+    return { error: "No se pudo inicializar el cliente de Supabase." };
+  }
+
+  const { error } = await client.rpc("create_workspace_appointment", {
+    target_business_id: businessId,
+    target_customer_id: input.customerId,
+    target_service_id: input.serviceId,
+    starts_at_value: new Date(input.startsAt).toISOString(),
+    assigned_membership_id_value: input.assignedMembershipId ?? null,
+    notes_value: input.notes ?? null,
+    status_value: input.status ?? "pending",
+  });
+
+  if (isMissingRpcError(error)) {
+    return createAppointmentViaTables(businessId, input);
+  }
 
   return { error: error?.message ?? null };
 }

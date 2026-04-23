@@ -77,7 +77,8 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 - la lectura operativa tambien puede endurecerse por accion en customers, services, products, appointments y sales
 - la navegacion ya exige permisos de lectura para dashboard y modulos operativos
 - los roles personalizados ya normalizan permisos minimos de lectura cuando se asignan permisos de escritura o gestion
-- el siguiente salto natural es revisar RPC sensibles y lecturas cruzadas para evitar combinaciones de permisos que funcionen mal en operaciones complejas
+- appointments y sales ya tienen RPC dedicadas para opciones, listados y creacion cuando la operacion necesita datos de otros modulos
+- el siguiente salto natural es revisar si otros modulos necesitan el mismo patron y endurecer mas RPC sensibles de negocio
 
 #### Trabajo concreto recomendado
 
@@ -107,9 +108,9 @@ Hoy ya hay auth, membresias, roles y permisos base. Sin embargo, todavia hay una
 
 5. si una operacion compleja no es segura solo con RLS, moverla a una RPC bien controlada
    ejemplo actual a revisar con cuidado:
-   - creacion de citas que necesita leer servicio, cliente y personal
-   - listas operativas que combinan datos de varios modulos con permisos potencialmente distintos
-   - creacion de ventas cuando el rol tiene ventas pero visibilidad limitada sobre clientes
+   - combinaciones futuras de ventas con items detallados, productos y servicios en la misma operacion
+   - reportes que mezclen ventas, citas y clientes sin exponer datos innecesarios
+   - automatizaciones futuras de inventario o facturacion sobre multiples tablas
 
 #### Criterio de cierre
 
@@ -130,6 +131,7 @@ Hoy ya hay base de testing con Vitest y algunas pruebas unitarias, pero aun no c
 - ya existe cobertura para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
 - ya existe base de pruebas UI con `jsdom` y `@testing-library/react` para auth y cambio de workspace
 - ya existe cobertura especifica para helpers de permisos, navegacion condicionada y normalizacion de dependencias de permisos
+- ya existe cobertura de servicios para RPC operativas de `appointments` y `sales`, incluido fallback de compatibilidad
 
 #### Lo que falta
 

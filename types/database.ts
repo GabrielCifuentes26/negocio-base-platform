@@ -611,6 +611,72 @@ export type Database = {
           membership_id: string;
         }[];
       };
+      create_workspace_appointment: {
+        Args: {
+          target_business_id: string;
+          target_customer_id: string;
+          target_service_id: string;
+          starts_at_value: string;
+          assigned_membership_id_value?: string | null;
+          notes_value?: string | null;
+          status_value?: string | null;
+        };
+        Returns: {
+          appointment_id: string;
+        }[];
+      };
+      create_workspace_sale: {
+        Args: {
+          target_business_id: string;
+          sold_by_membership_id_value?: string | null;
+          target_customer_id?: string | null;
+          total_value?: number;
+          status_value?: string | null;
+          payment_method_value?: string | null;
+        };
+        Returns: {
+          sale_id: string;
+          ticket_number: string;
+        }[];
+      };
+      get_appointment_form_options: {
+        Args: {
+          target_business_id: string;
+        };
+        Returns: Json;
+      };
+      get_sale_form_options: {
+        Args: {
+          target_business_id: string;
+        };
+        Returns: Json;
+      };
+      list_workspace_appointments: {
+        Args: {
+          target_business_id: string;
+        };
+        Returns: {
+          id: string;
+          customer_name: string;
+          service_name: string;
+          employee_name: string;
+          starts_at: string;
+          status: string;
+        }[];
+      };
+      list_workspace_sales: {
+        Args: {
+          target_business_id: string;
+        };
+        Returns: {
+          id: string;
+          ticket_number: string;
+          customer_name: string;
+          total: number;
+          status: string;
+          created_at: string;
+        }[];
+      };
       set_preferred_business: {
         Args: {
           target_business_id: string | null;

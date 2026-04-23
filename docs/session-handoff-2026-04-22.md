@@ -137,6 +137,8 @@ Puntos fuertes ya cerrados:
 - acceso por modulo alineado ya con permisos de lectura en dashboard y modulos operativos
 - roles personalizados normalizan dependencias minimas de lectura cuando se asignan permisos de escritura o gestion
 - migracion nueva para endurecer tambien la lectura operativa por accion en tablas principales
+- RPC nuevas para `appointments` y `sales` en escenarios con lecturas cruzadas entre modulos
+- servicios frontend de citas y ventas preparados para usar RPC con fallback temporal a consultas directas mientras la migracion no exista
 
 ## Migraciones importantes
 
@@ -155,6 +157,7 @@ Orden actual de migraciones:
 - `011_operational_write_permissions.sql`
 - `012_rpc_and_business_consistency_hardening.sql`
 - `013_operational_read_permissions.sql`
+- `014_operational_cross_module_rpcs.sql`
 
 Resumen de las ultimas:
 
@@ -166,6 +169,7 @@ Resumen de las ultimas:
 - `011`: politicas de escritura por accion para customers, services, products, appointments, appointment_services, sales y sale_items
 - `012`: validacion de consistencia entre negocio, rol y membresia; onboarding e invitaciones sincronizan tambien `preferred_business_id`
 - `013`: politicas de lectura por accion para customers, services, products, appointments, appointment_services, sales y sale_items
+- `014`: RPC seguras para opciones, listados y creacion de citas y ventas cuando la operacion depende de datos de otros modulos
 
 ## Variables de entorno actuales
 
@@ -185,6 +189,8 @@ Variables:
 - `services/api/workspace-service.ts`
 - `services/api/invitation-service.ts`
 - `services/api/onboarding-service.ts`
+- `services/api/appointment-service.ts`
+- `services/api/sale-service.ts`
 - `modules/onboarding/components/onboarding-wizard.tsx`
 - `modules/auth/components/auth-guard.tsx`
 - `modules/auth/components/accept-invitation-card.tsx`
@@ -208,6 +214,8 @@ Variables:
 - `database/migrations/011_operational_write_permissions.sql`
 - `database/migrations/012_rpc_and_business_consistency_hardening.sql`
 - `database/migrations/013_operational_read_permissions.sql`
+- `database/migrations/014_operational_cross_module_rpcs.sql`
+- `lib/supabase/rpc.ts`
 - `supabase/functions/send-business-invitation/index.ts`
 
 ## Validacion actual
@@ -241,6 +249,8 @@ Archivos nuevos de pruebas:
 - `tests/services/api/onboarding-service.test.ts`
 - `tests/services/api/invitation-service.test.ts`
 - `tests/services/api/workspace-service.test.ts`
+- `tests/services/api/appointment-service.test.ts`
+- `tests/services/api/sale-service.test.ts`
 
 ## Documento detallado de lo que falta
 
@@ -265,7 +275,7 @@ Prioridad sugerida para la proxima sesion:
    siguiente bloque sugerido: componentes criticos de onboarding y formularios operativos principales, incluyendo dependencias entre permisos y formularios
 
 2. endurecer seguridad
-   siguiente bloque sugerido: revisar RPC y servicios que hoy dependen de lecturas cruzadas, especialmente `appointments` y `sales`, para decidir si conviene mover operaciones complejas a RPC controladas
+   siguiente bloque sugerido: extender el patron de RPC controladas a otros casos complejos o revisar si `customers` y `products` necesitan operaciones equivalentes mas adelante
 
 3. mejorar onboarding
    agregar horarios iniciales, servicios base sugeridos y presets por industria
