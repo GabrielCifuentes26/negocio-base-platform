@@ -120,6 +120,7 @@ Puntos fuertes ya cerrados:
 - workflow CI agregado en `.github/workflows/ci.yml`
 - workflow de GitHub Pages ya presente
 - pruebas unitarias base con Vitest
+- pruebas nuevas para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
 
 ## Migraciones importantes
 
@@ -179,6 +180,24 @@ Ultima verificacion completada en verde:
 - `npm run test`
 - `npm run build`
 
+## Cobertura de pruebas agregada al final de la sesion
+
+Quedo cubierta una parte importante de los flujos criticos:
+
+- persistencia local del negocio preferido
+- bootstrap del onboarding via RPC
+- construccion y aceptacion de invitaciones
+- listado de invitaciones con mapeo de roles y links
+- resolucion del workspace activo segun negocio preferido
+- persistencia de preferencia de negocio via RPC
+
+Archivos nuevos de pruebas:
+
+- `tests/lib/auth/workspace-preferences.test.ts`
+- `tests/services/api/onboarding-service.test.ts`
+- `tests/services/api/invitation-service.test.ts`
+- `tests/services/api/workspace-service.test.ts`
+
 ## Documento detallado de lo que falta
 
 Para continuar sin perder contexto ni omitir pasos, revisar tambien:
@@ -199,7 +218,7 @@ Ese documento ya no es un resumen corto. Incluye:
 Prioridad sugerida para la proxima sesion:
 
 1. subir el nivel de pruebas
-   enfocar flujos criticos: auth, onboarding, invitaciones y cambio de workspace
+   siguiente bloque sugerido: `auth-context`, guards de autenticacion y componentes criticos de onboarding o workspace
 
 2. endurecer seguridad
    mover permisos de una logica por modulo a una mas fina por accion y revisar RLS

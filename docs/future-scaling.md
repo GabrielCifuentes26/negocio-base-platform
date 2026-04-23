@@ -110,6 +110,7 @@ Hoy ya hay base de testing con Vitest y algunas pruebas unitarias, pero aun no c
 - `lint`, `typecheck`, `test` y `build` corren en CI
 - existen pruebas unitarias base
 - la infraestructura inicial de tests ya esta preparada
+- ya existe cobertura para `workspace-preferences`, `workspace-service`, `onboarding-service` e `invitation-service`
 
 #### Lo que falta
 
